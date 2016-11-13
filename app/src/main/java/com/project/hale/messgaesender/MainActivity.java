@@ -14,6 +14,6 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
 
     @Override
     public void onFragmentInteraction(Uri uri) {
-
+        
     }
 }
