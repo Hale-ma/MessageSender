@@ -6,10 +6,16 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import java.net.NetworkInterface;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +29,8 @@ public class WifiBoardCastManager {
     WifiP2pManager.Channel mChannel;
     WifiP2pManager.DnsSdTxtRecordListener txtListener;
     WifiP2pManager.DnsSdServiceResponseListener servListener;
-    List<SenderDevice> availableDevice = new ArrayList<SenderDevice>();
+    Hashtable<String, SenderDevice> availableDevice = new Hashtable<String, SenderDevice>();
+    WifiP2pDnsSdServiceInfo serviceInfo = null;
 
     //singleton constructer
     private WifiBoardCastManager() {
@@ -35,20 +42,19 @@ public class WifiBoardCastManager {
     }
 
     public void startRegistration(String target, String content) {
-        //Create a string map containing information about your service.
         Map record = new HashMap();
-        // Service information.Pass it an instance name, service type
-        // _protocol._transportlayer , and the map containing
-        // information other devices will want once they connect to this one.
-        WifiP2pDnsSdServiceInfo serviceInfo = null;
+        Iterator it = availableDevice.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry entry = (Map.Entry) it.next();
+            record.put(entry.getKey(), ((SenderDevice) (entry.getValue())).distance+"");
+        }
+
+
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
             serviceInfo = WifiP2pDnsSdServiceInfo.newInstance("_test", "message.diffuse", record);
         }
-        // Add the local service, sending the service info, network channel,
-        // and listener that will be used to indicate success or failure of
-        // the request.
         mManager.addLocalService(mChannel, serviceInfo, new myWifiActionListener("addLocalService"));
-        Log.d("wifi service", "Service Registration - finish");
+        Log.d("wifi service", "Service Registration - Available:" + availableDevice.size());
 
     }
 
@@ -67,20 +73,59 @@ public class WifiBoardCastManager {
     public void init(WifiP2pManager wm, WifiP2pManager.Channel wc) {
         this.mManager = wm;
         this.mChannel = wc;
+        this.discoverService();
     }
 
     private class myDnsSdTxtRecordListener implements WifiP2pManager.DnsSdTxtRecordListener {
         @Override
         public void onDnsSdTxtRecordAvailable(String s, Map<String, String> record, WifiP2pDevice wifiP2pDevice) {
-            Log.d("wifi", "DnsSdTxtRecord available -" + record.toString());
+            if (s.equals("_test.message.diffuse.local.")) {
+                if(availableDevice.containsKey(wifiP2pDevice.deviceAddress)){
+                   availableDevice.get(wifiP2pDevice.deviceAddress).distance=1;
+                }
+                availableDevice.put(wifiP2pDevice.deviceAddress, new SenderDevice(wifiP2pDevice));
+                Log.d("wifi service-receive", "DnsSdTxtRecord available -" + record.toString() + wifiP2pDevice.deviceAddress);
+                sInstance.mManager.removeLocalService(mChannel, serviceInfo, new myWifiActionListener("remove"));
+                WifiBoardCastManager.getsInstance().discoverService();
+                sInstance.startRegistration("","");
+            }else {
+                Log.d("wifi service","s:"+s+" "+wifiP2pDevice.deviceAddress);
+            }
         }
     }
 
     private class myDnsSdServiceResponseListener implements WifiP2pManager.DnsSdServiceResponseListener {
         @Override
         public void onDnsSdServiceAvailable(String instanceName, String registrationType, WifiP2pDevice resourceType) {
-            Log.d("wifi", "onBonjourServiceAvailable " + instanceName + " registrationtype :" + registrationType);
+            Log.d("wifi service-receive", "onBonjourServiceAvailable " + instanceName + " registrationtype :" + registrationType);
 
         }
+    }
+
+    @NonNull
+    public static String getMacAddr() {
+        try {
+            List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface nif : all) {
+                if (!nif.getName().equalsIgnoreCase("wlan0")) continue;
+
+                byte[] macBytes = nif.getHardwareAddress();
+                if (macBytes == null) {
+                    return "";
+                }
+
+                StringBuilder res1 = new StringBuilder();
+                for (byte b : macBytes) {
+                    res1.append(Integer.toHexString(b & 0xFF) + ":");
+                }
+
+                if (res1.length() > 0) {
+                    res1.deleteCharAt(res1.length() - 1);
+                }
+                return res1.toString();
+            }
+        } catch (Exception ex) {
+        }
+        return "02:00:00:00:00:00";
     }
 }

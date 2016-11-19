@@ -10,6 +10,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.project.hale.messgaesender.Wifi.WifiBoardCastManager;
+
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
@@ -65,6 +67,10 @@ public class DeviceListFragment extends ListFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view=inflater.inflate(R.layout.device_list,null);
+        TextView myName= (TextView) view.findViewById(R.id.my_name);
+        TextView myDetail= (TextView) view.findViewById(R.id.my_detail);
+        myName.setText("My Mac:"+WifiBoardCastManager.getMacAddr());
+        myDetail.setText("Free");
         return view;
     }
 
