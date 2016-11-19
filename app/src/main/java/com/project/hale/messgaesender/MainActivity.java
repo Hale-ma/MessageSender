@@ -1,8 +1,10 @@
 package com.project.hale.messgaesender;
 
+import android.app.Fragment;
 import android.content.Context;
 import android.net.Uri;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,8 +27,9 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
         initwifi();
-        wm.startRegistration("","");
 
 
     }
@@ -37,9 +40,10 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     }
 
     private void initwifi(){
+        DeviceListFragment dfra= (DeviceListFragment) getSupportFragmentManager().findFragmentById(R.id.frag_list);
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
-        wm.init(mManager, mChannel);
+        wm.init(mManager, mChannel,dfra);
     }
 
 

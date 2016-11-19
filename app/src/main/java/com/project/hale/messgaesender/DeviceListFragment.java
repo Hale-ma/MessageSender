@@ -2,15 +2,23 @@ package com.project.hale.messgaesender;
 
 import android.content.Context;
 import android.net.Uri;
+import android.net.wifi.p2p.WifiP2pDevice;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import com.project.hale.messgaesender.Wifi.SenderDevice;
 import com.project.hale.messgaesender.Wifi.WifiBoardCastManager;
+
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -20,7 +28,7 @@ import com.project.hale.messgaesender.Wifi.WifiBoardCastManager;
  * Use the {@link DeviceListFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class DeviceListFragment extends ListFragment {
+public class DeviceListFragment extends ListFragment{
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -55,6 +63,13 @@ public class DeviceListFragment extends ListFragment {
     }
 
     @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        // set list adapter with row layout to adapter data
+        this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices,WifiBoardCastManager.getsInstance().getDevice()));
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
@@ -69,7 +84,7 @@ public class DeviceListFragment extends ListFragment {
         View view=inflater.inflate(R.layout.device_list,null);
         TextView myName= (TextView) view.findViewById(R.id.my_name);
         TextView myDetail= (TextView) view.findViewById(R.id.my_detail);
-        myName.setText("My Mac:"+WifiBoardCastManager.getMacAddr());
+        myName.setText("My Mac: "+WifiBoardCastManager.getMacAddr());
         myDetail.setText("Free");
         return view;
     }
@@ -98,6 +113,11 @@ public class DeviceListFragment extends ListFragment {
         mListener = null;
     }
 
+    public void updateUI() {
+        this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices,WifiBoardCastManager.getsInstance().getDevice()));
+        Log.d("updateUI","updateUI");
+    }
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -112,4 +132,46 @@ public class DeviceListFragment extends ListFragment {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
+    private class SenderDeviceListAdapter extends ArrayAdapter<SenderDevice> {
+
+        private List<SenderDevice> items;
+
+        /**
+         * @param context
+         * @param textViewResourceId
+         * @param objects
+         */
+        public SenderDeviceListAdapter(Context context, int textViewResourceId,
+                                   List<SenderDevice> objects) {
+            super(context, textViewResourceId, objects);
+            items = objects;
+
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View v = convertView;
+            if (v == null) {
+                LayoutInflater vi = (LayoutInflater) getActivity().getSystemService(
+                        Context.LAYOUT_INFLATER_SERVICE);
+                v = vi.inflate(R.layout.row_devices, null);
+            }
+            SenderDevice device = items.get(position);
+            if (device != null) {
+                TextView top = (TextView) v.findViewById(R.id.device_name);
+                TextView bottom = (TextView) v.findViewById(R.id.device_details);
+                if (top != null) {
+                    top.setText(device.deviceAddress);
+                }
+                if (bottom != null) {
+                    bottom.setText("distance:"+device.distance+"nearest node:"+device.nearestDevice);
+                }
+              //  Log.d("adapter", "WiFiPeerListAdapter : getView : " + device.toString());
+            }
+            return v;
+        }
+    }
+
+
 }

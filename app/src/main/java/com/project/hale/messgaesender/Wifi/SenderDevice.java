@@ -22,7 +22,7 @@ public class SenderDevice {
         distance=1;
     }
     public String toString(){
-        return deviceAddress+"->"+nearestDevice;
+        return deviceAddress+"->"+nearestDevice.deviceName+"("+nearestDevice.deviceAddress+")";
     }
 
 }

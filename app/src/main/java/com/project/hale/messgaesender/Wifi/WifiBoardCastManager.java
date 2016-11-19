@@ -6,8 +6,12 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.os.Build;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.Log;
+
+import com.project.hale.messgaesender.DeviceListFragment;
+import com.project.hale.messgaesender.MainActivity;
 
 import java.net.NetworkInterface;
 import java.util.ArrayList;
@@ -31,6 +35,7 @@ public class WifiBoardCastManager {
     WifiP2pManager.DnsSdServiceResponseListener servListener;
     Hashtable<String, SenderDevice> availableDevice = new Hashtable<String, SenderDevice>();
     WifiP2pDnsSdServiceInfo serviceInfo = null;
+    DeviceListFragment dfra=null;
 
     //singleton constructer
     private WifiBoardCastManager() {
@@ -70,25 +75,30 @@ public class WifiBoardCastManager {
 
     }
 
-    public void init(WifiP2pManager wm, WifiP2pManager.Channel wc) {
+    public void init(WifiP2pManager wm, WifiP2pManager.Channel wc,DeviceListFragment df) {
         this.mManager = wm;
         this.mChannel = wc;
+        this.dfra=df;
         this.discoverService();
     }
 
     private class myDnsSdTxtRecordListener implements WifiP2pManager.DnsSdTxtRecordListener {
         @Override
         public void onDnsSdTxtRecordAvailable(String s, Map<String, String> record, WifiP2pDevice wifiP2pDevice) {
-            if (s.equals("_test.message.diffuse.local.")) {
+            if (s.equals("_test.message.diffuse.local.")&&!availableDevice.containsKey(wifiP2pDevice.deviceAddress)) {
                 if(availableDevice.containsKey(wifiP2pDevice.deviceAddress)){
                    availableDevice.get(wifiP2pDevice.deviceAddress).distance=1;
                 }
                 availableDevice.put(wifiP2pDevice.deviceAddress, new SenderDevice(wifiP2pDevice));
                 Log.d("wifi service-receive", "DnsSdTxtRecord available -" + record.toString() + wifiP2pDevice.deviceAddress);
-                sInstance.mManager.removeLocalService(mChannel, serviceInfo, new myWifiActionListener("remove"));
+                if(serviceInfo!=null){
+                sInstance.mManager.removeLocalService(mChannel, serviceInfo, new myWifiActionListener("remove"));}
                 WifiBoardCastManager.getsInstance().discoverService();
                 sInstance.startRegistration("","");
+                dfra.updateUI();
+
             }else {
+                dfra.updateUI();
                 Log.d("wifi service","s:"+s+" "+wifiP2pDevice.deviceAddress);
             }
         }
@@ -100,6 +110,10 @@ public class WifiBoardCastManager {
             Log.d("wifi service-receive", "onBonjourServiceAvailable " + instanceName + " registrationtype :" + registrationType);
 
         }
+    }
+
+    public List<SenderDevice> getDevice(){
+        return new ArrayList<>(availableDevice.values());
     }
 
     @NonNull
