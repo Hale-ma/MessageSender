@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.project.hale.messgaesender.Wifi.SenderDevice;
@@ -90,10 +91,16 @@ public class DeviceListFragment extends ListFragment{
     }
 
     // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
+    public void onButtonPressed(SenderDevice senderDevice) {
         if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
+            mListener.onFragmentInteraction(senderDevice);
         }
+    }
+
+    @Override
+    public void onListItemClick(ListView l, View v, int position, long id) {
+        SenderDevice device = (SenderDevice) getListAdapter().getItem(position);
+        mListener.onFragmentInteraction(device);
     }
 
     @Override
@@ -129,8 +136,7 @@ public class DeviceListFragment extends ListFragment{
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+        void onFragmentInteraction(SenderDevice device);
     }
 
     private class SenderDeviceListAdapter extends ArrayAdapter<SenderDevice> {

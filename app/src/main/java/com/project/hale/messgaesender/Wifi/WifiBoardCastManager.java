@@ -35,9 +35,10 @@ public class WifiBoardCastManager {
     WifiP2pManager.DnsSdServiceResponseListener servListener;
     Hashtable<String, SenderDevice> availableDevice = new Hashtable<String, SenderDevice>();
     WifiP2pDnsSdServiceInfo serviceInfo = null;
+    ArrayList<WifiP2pDnsSdServiceInfo> boardcastingList=new ArrayList<WifiP2pDnsSdServiceInfo>();
     DeviceListFragment dfra=null;
 
-    //singleton constructer
+    //singleton constructor
     private WifiBoardCastManager() {
 
     }
@@ -46,21 +47,29 @@ public class WifiBoardCastManager {
         return sInstance;
     }
 
-    public void startRegistration(String target, String content) {
+    public void startRegistration() {
         Map record = new HashMap();
         Iterator it = availableDevice.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry entry = (Map.Entry) it.next();
             record.put(entry.getKey(), ((SenderDevice) (entry.getValue())).distance+"");
         }
-
-
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-            serviceInfo = WifiP2pDnsSdServiceInfo.newInstance("_test", "message.diffuse", record);
+            serviceInfo = WifiP2pDnsSdServiceInfo.newInstance("find", "message.diffuse", record);
         }
-        mManager.addLocalService(mChannel, serviceInfo, new myWifiActionListener("addLocalService"));
+        mManager.addLocalService(mChannel, serviceInfo, new myWifiActionListener("addLocalService_find"));
         Log.d("wifi service", "Service Registration - Available:" + availableDevice.size());
+    }
 
+    public void startBoradcast(String targetMac,String message) {
+        Map record = new HashMap();
+        record.put("from",getMacAddr());
+        record.put("message",message);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+            WifiP2pDnsSdServiceInfo serviceInfo = WifiP2pDnsSdServiceInfo.newInstance("send", "message.diffuse", record);
+        }
+        mManager.addLocalService(mChannel, serviceInfo, new myWifiActionListener("addLocalService_send"));
+        Log.d("wifi service", "target:"+targetMac+" message："+message);
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
@@ -80,12 +89,13 @@ public class WifiBoardCastManager {
         this.mChannel = wc;
         this.dfra=df;
         this.discoverService();
+        startRegistration();
     }
 
     private class myDnsSdTxtRecordListener implements WifiP2pManager.DnsSdTxtRecordListener {
         @Override
         public void onDnsSdTxtRecordAvailable(String s, Map<String, String> record, WifiP2pDevice wifiP2pDevice) {
-            if (s.equals("_test.message.diffuse.local.")&&!availableDevice.containsKey(wifiP2pDevice.deviceAddress)) {
+            if (s.equals("find.message.diffuse.local.")&&!availableDevice.containsKey(wifiP2pDevice.deviceAddress)) {//to be change
                 if(availableDevice.containsKey(wifiP2pDevice.deviceAddress)){
                    availableDevice.get(wifiP2pDevice.deviceAddress).distance=1;
                 }
@@ -94,10 +104,14 @@ public class WifiBoardCastManager {
                 if(serviceInfo!=null){
                 sInstance.mManager.removeLocalService(mChannel, serviceInfo, new myWifiActionListener("remove"));}
                 WifiBoardCastManager.getsInstance().discoverService();
-                sInstance.startRegistration("","");
+                sInstance.startRegistration();
                 dfra.updateUI();
 
-            }else {
+            }else if(s.equals("send.message.diffuse.local.")){
+
+            }
+
+            else {
                 dfra.updateUI();
                 Log.d("wifi service","s:"+s+" "+wifiP2pDevice.deviceAddress);
             }
