@@ -33,7 +33,9 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     public void onFragmentInteraction(SenderDevice device) {
         Log.d("Sender GUI", "onclick - " + device.deviceAddress);
         Intent intent= new Intent(MainActivity.this,ChatActivity.class);
-        intent.putExtra("mac",device.deviceAddress);
+        Bundle bundle=new Bundle();
+        bundle.putString("mac",device.deviceAddress);
+        intent.putExtras(bundle);
         startActivity(intent);
 
 
