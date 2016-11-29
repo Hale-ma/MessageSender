@@ -37,10 +37,13 @@ public class WifiBoardCastManager {
     WifiP2pManager.DnsSdServiceResponseListener servListener;
     Hashtable<String, SenderDevice> availableDevice = new Hashtable<String, SenderDevice>();
     WifiP2pDnsSdServiceInfo serviceInfo = null;
-    ArrayList<WifiP2pDnsSdServiceInfo> boardcastingList = new ArrayList<WifiP2pDnsSdServiceInfo>();
     DeviceListFragment dfra = null;
+    Handler mServiceBroadcastingHandler = new Handler();
+    Handler mServiceDiscoveringHandler = new Handler();
+    WifiP2pDnsSdServiceRequest mWifiP2pServiceRequest;
     public static String MacAddr;
-
+    public static int SERVICE_BROADCASTING_INTERVAL = 8000;
+    public static int SERVICE_DISCOVERING_INTERVAL = 10000;
     //singleton constructor
     private WifiBoardCastManager() {
 
@@ -51,49 +54,115 @@ public class WifiBoardCastManager {
     }
 
     public void startRegistration() {
-        Map record = new HashMap();
-        Iterator it = availableDevice.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry entry = (Map.Entry) it.next();
-            record.put(entry.getKey(), ((SenderDevice) (entry.getValue())).distance + "");
-        }
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-            serviceInfo = WifiP2pDnsSdServiceInfo.newInstance("find", "message.diffuse", record);
-        }
-        mManager.addLocalService(mChannel, serviceInfo, new myWifiActionListener("addLocalService_find"));
-        Log.d("wifi service", "Service Registration - Available:" + availableDevice.size());
-    }
+        mManager.clearLocalServices(mChannel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                Map record = new HashMap();
+                Iterator it = availableDevice.entrySet().iterator();
+                while (it.hasNext()) {
+                    Map.Entry entry = (Map.Entry) it.next();
+                    record.put(entry.getKey(), ((SenderDevice) (entry.getValue())).distance + "");
+                }
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+                    serviceInfo = WifiP2pDnsSdServiceInfo.newInstance("find", "message.diffuse", record);
+                }
+                mManager.addLocalService(mChannel, serviceInfo, new WifiP2pManager.ActionListener() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d("wifi service", "Service Registration - Available:" + availableDevice.size());
+                        mServiceBroadcastingHandler.postDelayed(mServiceBroadcastingRunnable, SERVICE_BROADCASTING_INTERVAL);
+                    }
 
-    public void startBoradcast(String targetMac, String message) {
-        Map record = new HashMap();
-        record.put("sor", getMacAddr());
-        record.put("tar",targetMac);
-        record.put("msg", message);
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-            WifiP2pDnsSdServiceInfo serviceInfo = WifiP2pDnsSdServiceInfo.newInstance("send", "message.diffuse", record);
-        }
-        mManager.addLocalService(mChannel, serviceInfo, new myWifiActionListener("addLocalService_send"));
-        Log.d("wifi service", "target:" + targetMac + " message：" + message);
-    }
+                    @Override
+                    public void onFailure(int i) {
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-    public void discoverService() {
-        WifiP2pDnsSdServiceRequest serviceRequest = WifiP2pDnsSdServiceRequest.newInstance();
-        mManager.addServiceRequest(mChannel, serviceRequest, new myWifiActionListener("Server Request"));
-        mManager.discoverServices(mChannel, new myWifiActionListener("discoverServices"));
-        txtListener = new myDnsSdTxtRecordListener();
-        servListener = new myDnsSdServiceResponseListener();
-        mManager.setDnsSdResponseListeners(mChannel, servListener, txtListener);
-        Log.d("wifi", "setDnsSdResponseListeners ");
+                    }
+                });
+
+            }
+
+            @Override
+            public void onFailure(int i) {
+                Log.d("wifi service", "failed to clear");
+            }
+        });
 
     }
+//
+//    public void startBoradcast(String targetMac, String message) {
+//        Map record = new HashMap();
+//        record.put("sor", getMacAddr());
+//        record.put("tar",targetMac);
+//        record.put("msg", message);
+//        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+//            WifiP2pDnsSdServiceInfo serviceInfo = WifiP2pDnsSdServiceInfo.newInstance("send", "message.diffuse", record);
+//        }
+//        mManager.addLocalService(mChannel, serviceInfo, new myWifiActionListener("addLocalService_send"));
+//        Log.d("wifi service", "target:" + targetMac + " message：" + message);
+//    }
+
+//    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+//    public void discoverService() {
+//        WifiP2pDnsSdServiceRequest serviceRequest = WifiP2pDnsSdServiceRequest.newInstance();
+//        mManager.addServiceRequest(mChannel, serviceRequest, new myWifiActionListener("Server Request"));
+//        mManager.discoverServices(mChannel, new myWifiActionListener("discoverServices"));
+//        txtListener = new myDnsSdTxtRecordListener();
+//        servListener = new myDnsSdServiceResponseListener();
+//        mManager.setDnsSdResponseListeners(mChannel, servListener, txtListener);
+//        Log.d("wifi", "setDnsSdResponseListeners ");
+//
+//    }
+    public void prepareServiceDiscovery(){
+        mManager.setDnsSdResponseListeners(mChannel,new myDnsSdServiceResponseListener(),new myDnsSdTxtRecordListener());
+        mWifiP2pServiceRequest = WifiP2pDnsSdServiceRequest.newInstance();
+    }
+
+    private void startServiceDiscovery() {
+        mManager.removeServiceRequest(mChannel, mWifiP2pServiceRequest,
+                new WifiP2pManager.ActionListener() {
+                    @Override
+                    public void onSuccess() {
+                        mManager.addServiceRequest(mChannel, mWifiP2pServiceRequest,
+                                new WifiP2pManager.ActionListener() {
+
+                                    @Override
+                                    public void onSuccess() {
+                                        Log.d("wifi service","addServiceRequest ");
+                                        mManager.discoverServices(mChannel, new WifiP2pManager.ActionListener() {
+
+                                                    @Override
+                                                    public void onSuccess() {
+                                                        Log.d("wifi service","discoverServices success");
+                                                        mServiceDiscoveringHandler.postDelayed(mServiceDiscoveringRunnable, SERVICE_DISCOVERING_INTERVAL);
+                                                    }
+                                                    @Override
+                                                    public void onFailure(int error) {
+                                                        Log.d("wifi service","discoverServices failed "+error);
+                                                    }
+                                                });
+                                    }
+                                    @Override
+                                    public void onFailure(int error) {
+                                        // react to failure of adding service request
+                                    }
+                                });
+                    }
+
+                    @Override
+                    public void onFailure(int reason) {
+                        // react to failure of removing service request
+                    }
+                });
+    }
+
 
     public void init(WifiP2pManager wm, WifiP2pManager.Channel wc, DeviceListFragment df) {
         this.mManager = wm;
         this.mChannel = wc;
         this.dfra = df;
-        this.discoverService();
         startRegistration();
+        this.prepareServiceDiscovery();
+        startServiceDiscovery();
     }
 
     private class myDnsSdTxtRecordListener implements WifiP2pManager.DnsSdTxtRecordListener {
@@ -108,23 +177,19 @@ public class WifiBoardCastManager {
                 if (serviceInfo != null) {
                     sInstance.mManager.removeLocalService(mChannel, serviceInfo, new myWifiActionListener("remove"));
                 }
-                WifiBoardCastManager.getsInstance().discoverService();
-                sInstance.startRegistration();
                 dfra.updateUI();
 
             } else if (s.equals("send.message.diffuse.local.")) {
-                Log.d("wifi eceive",record.toString());
-                if(record.get("tar").equals(getMacAddr())){
-                    Log.d("wifi receive","It is mine:"+record.get("msg"));
-                }else {
-                    Log.d("wifi receive","It not mine:"+record.get("msg"));
+                Log.d("wifi eceive", record.toString());
+                if (record.get("tar").equals(getMacAddr())) {
+                    Log.d("wifi receive", "It is mine:" + record.get("msg"));
+                } else {
+                    Log.d("wifi receive", "It not mine:" + record.get("msg"));
                 }
-                WifiBoardCastManager.getsInstance().discoverService();
 
             } else {
                 dfra.updateUI();
                 Log.d("wifi service", "s:" + s + " " + wifiP2pDevice.deviceAddress);
-                WifiBoardCastManager.getsInstance().discoverService();
             }
         }
     }
@@ -143,7 +208,7 @@ public class WifiBoardCastManager {
 
     @NonNull
     public static String getMacAddr() {
-        if(MacAddr!=null){
+        if (MacAddr != null) {
             return MacAddr;
         }
         try {
@@ -164,11 +229,35 @@ public class WifiBoardCastManager {
                 if (res1.length() > 0) {
                     res1.deleteCharAt(res1.length() - 1);
                 }
-                MacAddr=res1.toString();
+                MacAddr = res1.toString();
                 return res1.toString();
             }
         } catch (Exception ex) {
         }
         return "02:00:00:00:00:00";
     }
+
+    private Runnable mServiceBroadcastingRunnable = new Runnable() {
+        @Override
+        public void run() {
+            mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
+                @Override
+                public void onSuccess() {
+                }
+
+                @Override
+                public void onFailure(int error) {
+                }
+            });
+            mServiceBroadcastingHandler
+                    .postDelayed(mServiceBroadcastingRunnable, SERVICE_BROADCASTING_INTERVAL);
+        }
+    };
+
+    private Runnable mServiceDiscoveringRunnable = new Runnable() {
+        @Override
+        public void run() {
+            startServiceDiscovery();
+        }
+    };
 }
