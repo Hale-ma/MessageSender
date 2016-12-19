@@ -9,8 +9,10 @@ import android.util.Log;
 
 import com.peak.salut.Callbacks.SalutCallback;
 import com.peak.salut.Callbacks.SalutDataCallback;
+import com.peak.salut.Callbacks.SalutDeviceCallback;
 import com.peak.salut.Salut;
 import com.peak.salut.SalutDataReceiver;
+import com.peak.salut.SalutDevice;
 import com.peak.salut.SalutServiceData;
 import com.project.hale.messgaesender.Wifi.SenderDevice;
 import com.project.hale.messgaesender.Wifi.WifiBoardCastManager;
@@ -19,12 +21,16 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     WifiP2pManager mManager;
     WifiP2pManager.Channel mChannel;
     WifiBoardCastManager wm = WifiBoardCastManager.getsInstance();
+    Salut snetwork;
+    DeviceListFragment dfra;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        initwifi();
+        dfra = (DeviceListFragment) getSupportFragmentManager().findFragmentById(R.id.frag_list);
+        initSalut();
+        //  initwifi();
 
 
     }
@@ -32,12 +38,11 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     @Override
     public void onFragmentInteraction(SenderDevice device) {
         Log.d("Sender GUI", "onclick - " + device.deviceAddress);
-        Intent intent= new Intent(MainActivity.this,ChatActivity.class);
-        Bundle bundle=new Bundle();
-        bundle.putString("mac",device.deviceAddress);
+        Intent intent = new Intent(MainActivity.this, ChatActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putString("mac", device.deviceAddress);
         intent.putExtras(bundle);
         startActivity(intent);
-
 
 
     }
@@ -49,9 +54,36 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
         wm.init(mManager, mChannel, dfra);
     }
 
+    private void initSalut() {
+        SalutDataReceiver dataReceiver = new SalutDataReceiver(this, this);
+        SalutServiceData sd = new SalutServiceData("sas", 52391, "2232");
+        SalutCallback sc = new SalutCallback() {
+            @Override
+            public void call() {
+                Log.e("Salut", "not support wifi direct");
+            }
+        };
+        snetwork = new Salut(dataReceiver, sd, sc);
+        snetwork.startNetworkService(new SalutDeviceCallback() {
+            @Override
+            public void call(SalutDevice salutDevice) {
+                Log.d("233", salutDevice.readableName + "has connected");
+            }
+        });
+
+        //
+
+        snetwork.discoverNetworkServices(new SalutCallback() {
+            @Override
+            public void call() {
+                Log.d("Salut", "Look at all these devices! " + snetwork.foundDevices.toString());
+            }
+        }, true);
+    }
+
 
     @Override
     public void onDataReceived(Object o) {
-        Log.d("wifi connection", o.toString());
+        Log.d("Salut - on DataReceived", o.toString());
     }
 }
