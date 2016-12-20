@@ -129,10 +129,10 @@ public class DeviceListFragment extends ListFragment {
         Log.d("updateUI", "updateUI");
     }
 
-//    public void addDevice(SalutDevice s){
-//        slist.add(new SenderDevice(s.))
-//        this.updateUI();
-//    }
+    public void addDevice(SalutDevice s){
+        slist.add(new SenderDevice(s));
+        this.updateUI();
+    }
 
     /**
      * This interface must be implemented by activities that contain this
@@ -177,10 +177,10 @@ public class DeviceListFragment extends ListFragment {
                 TextView top = (TextView) v.findViewById(R.id.device_name);
                 TextView bottom = (TextView) v.findViewById(R.id.device_details);
                 if (top != null) {
-                    top.setText(device.deviceAddress);
+                    top.setText(device.toString());
                 }
                 if (bottom != null) {
-                    bottom.setText("distance:" + device.distance + "nearest node:" + device.nearestDevice);
+                    bottom.setText("distance:" + device.distance + "nearest node:" + "?");
                 }
                 //  Log.d("adapter", "WiFiPeerListAdapter : getView : " + device.toString());
             }

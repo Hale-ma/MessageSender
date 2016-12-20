@@ -17,6 +17,8 @@ import com.peak.salut.SalutServiceData;
 import com.project.hale.messgaesender.Wifi.SenderDevice;
 import com.project.hale.messgaesender.Wifi.WifiBoardCastManager;
 
+import java.util.Iterator;
+
 public class MainActivity extends AppCompatActivity implements DeviceListFragment.OnFragmentInteractionListener, SalutDataCallback {
     WifiP2pManager mManager;
     WifiP2pManager.Channel mChannel;
@@ -37,13 +39,13 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
 
     @Override
     public void onFragmentInteraction(SenderDevice device) {
-        Log.d("Sender GUI", "onclick - " + device.deviceAddress);
-        Intent intent = new Intent(MainActivity.this, ChatActivity.class);
-        Bundle bundle = new Bundle();
-        bundle.putString("mac", device.deviceAddress);
-        intent.putExtras(bundle);
-        startActivity(intent);
-
+        Log.d("Sender GUI", "onclick - " + device.salutDevice.readableName);
+//        Intent intent = new Intent(MainActivity.this, ChatActivity.class);
+//        Bundle bundle = new Bundle();
+//        bundle.putString("mac", device.deviceAddress);
+//        intent.putExtras(bundle);
+//        startActivity(intent);
+//        snetwork.registerWithHost();
 
     }
 
@@ -77,6 +79,10 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
             @Override
             public void call() {
                 Log.d("Salut", "Look at all these devices! " + snetwork.foundDevices.toString());
+                Iterator<SalutDevice> it=snetwork.foundDevices.iterator();
+                while(it.hasNext()) {
+                    dfra.addDevice(it.next());
+                }
             }
         }, true);
     }

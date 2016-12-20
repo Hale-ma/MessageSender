@@ -103,7 +103,7 @@ public class WifiBoardCastManager {
                 if (availableDevice.containsKey(wifiP2pDevice.deviceAddress)) {
                     availableDevice.get(wifiP2pDevice.deviceAddress).distance = 1;
                 }
-                availableDevice.put(wifiP2pDevice.deviceAddress, new SenderDevice(wifiP2pDevice));
+            //    availableDevice.put(wifiP2pDevice.deviceAddress, new SenderDevice(wifiP2pDevice));
                 Log.d("wifi service-receive", "DnsSdTxtRecord available -" + record.toString() + wifiP2pDevice.deviceAddress);
                 if (serviceInfo != null) {
                     sInstance.mManager.removeLocalService(mChannel, serviceInfo, new myWifiActionListener("remove"));

@@ -38,7 +38,7 @@ public class ChatActivity extends AppCompatActivity {
         }
 
         private void sendMessage_boradcast(String message){
-            WifiBoardCastManager.getsInstance().startBoradcast(chating_mac,message);
+           // WifiBoardCastManager.getsInstance().startBoradcast(chating_mac,message);
         }
     }
 }
