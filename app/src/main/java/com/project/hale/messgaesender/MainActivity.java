@@ -54,16 +54,22 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     }
 
     private void initSalut() {
-        SalutDataReceiver dataReceiver = new SalutDataReceiver(this, SenderWifiManager.getInstance());
-        SalutServiceData sd = new SalutServiceData("sas", 52391, "xiaolan");
-        SalutCallback sc = new SalutCallback() {
-            @Override
-            public void call() {
-                Log.e("Salut", "not support wifi direct");
-            }
-        };
-        snetwork = new Salut(dataReceiver, sd, sc);
-        SenderWifiManager.getInstance().init(snetwork,dfra);
+        if(!SenderWifiManager.getInstance().isInit) {
+            SalutDataReceiver dataReceiver = new SalutDataReceiver(this, SenderWifiManager.getInstance());
+            SalutServiceData sd = new SalutServiceData("sas", 52391, "xiaolan");
+            SalutCallback sc = new SalutCallback() {
+                @Override
+                public void call() {
+                    Log.e("Salut", "not support wifi direct");
+                }
+            };
+            snetwork = new Salut(dataReceiver, sd, sc);
+            SenderWifiManager.getInstance().init(dataReceiver, snetwork, dfra);
+            SenderWifiManager.getInstance().isInit=true;
+        }
+        else{
+            Log.d("Salut - me","no need to init");
+        }
 
 
         //

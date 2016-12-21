@@ -40,9 +40,7 @@ public class ChatActivity extends AppCompatActivity {
         }
 
         private void sendMessage_boradcast(String message){
-            Message msg=new Message();
-            msg.description=message;
-            SenderWifiManager.getInstance().sendto(msg);
+           SenderWifiManager.getInstance().sendmsg(message);
         }
     }
 }

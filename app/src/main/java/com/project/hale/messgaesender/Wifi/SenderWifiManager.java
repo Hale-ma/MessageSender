@@ -6,8 +6,11 @@ import com.peak.salut.Callbacks.SalutCallback;
 import com.peak.salut.Callbacks.SalutDataCallback;
 import com.peak.salut.Callbacks.SalutDeviceCallback;
 import com.peak.salut.Salut;
+import com.peak.salut.SalutDataReceiver;
 import com.peak.salut.SalutDevice;
+import com.peak.salut.SalutServiceData;
 import com.project.hale.messgaesender.DeviceListFragment;
+import com.project.hale.messgaesender.MainActivity;
 
 import java.util.Iterator;
 
@@ -19,7 +22,9 @@ public class SenderWifiManager implements SalutDataCallback {
     private static SenderWifiManager sInstance = new SenderWifiManager();
     public Salut snetwork;
     public SalutDevice nowdevice;
+    private SalutDataReceiver sdr;
     DeviceListFragment dfra = null;
+    public boolean isInit=false;
 
     private SenderWifiManager() {
 
@@ -29,7 +34,8 @@ public class SenderWifiManager implements SalutDataCallback {
         return sInstance;
     }
 
-    public void init(Salut s, DeviceListFragment dlf) {
+    public void init(SalutDataReceiver sdr,Salut s, DeviceListFragment dlf) {
+        this.sdr=sdr;
         this.snetwork = s;
         this.dfra = dlf;
         snetwork.startNetworkService(new SalutDeviceCallback() {
@@ -82,6 +88,20 @@ public class SenderWifiManager implements SalutDataCallback {
 //    }
 
     public void sendmsg(String msg){
-
+        snetwork.stopNetworkService(false);
+        SalutServiceData sd = new SalutServiceData("new", 52391, msg);
+        SalutCallback sc = new SalutCallback() {
+            @Override
+            public void call() {
+                Log.e("Salut", "not support wifi direct");
+            }
+        };
+        snetwork = new Salut(sdr, sd, sc);
+        snetwork.startNetworkService(new SalutDeviceCallback() {
+            @Override
+            public void call(SalutDevice salutDevice) {
+                Log.d("Salut", salutDevice.readableName + "has connected");
+            }
+        });
     }
 }
