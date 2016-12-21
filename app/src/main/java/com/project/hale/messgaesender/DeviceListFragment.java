@@ -1,11 +1,7 @@
 package com.project.hale.messgaesender;
 
 import android.content.Context;
-import android.net.Uri;
-import android.net.wifi.p2p.WifiP2pDevice;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
 import android.util.Log;

@@ -9,15 +9,12 @@ import android.util.Log;
 
 import com.peak.salut.Callbacks.SalutCallback;
 import com.peak.salut.Callbacks.SalutDataCallback;
-import com.peak.salut.Callbacks.SalutDeviceCallback;
 import com.peak.salut.Salut;
 import com.peak.salut.SalutDataReceiver;
-import com.peak.salut.SalutDevice;
 import com.peak.salut.SalutServiceData;
 import com.project.hale.messgaesender.Wifi.SenderDevice;
+import com.project.hale.messgaesender.Wifi.SenderWifiManager;
 import com.project.hale.messgaesender.Wifi.WifiBoardCastManager;
-
-import java.util.Iterator;
 
 public class MainActivity extends AppCompatActivity implements DeviceListFragment.OnFragmentInteractionListener, SalutDataCallback {
     WifiP2pManager mManager;
@@ -40,12 +37,12 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     @Override
     public void onFragmentInteraction(SenderDevice device) {
         Log.d("Sender GUI", "onclick - " + device.salutDevice.readableName);
-//        Intent intent = new Intent(MainActivity.this, ChatActivity.class);
-//        Bundle bundle = new Bundle();
-//        bundle.putString("mac", device.deviceAddress);
-//        intent.putExtras(bundle);
-//        startActivity(intent);
-//        snetwork.registerWithHost();
+        Intent intent = new Intent(MainActivity.this, ChatActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putString("name", device.salutDevice.readableName);
+        intent.putExtras(bundle);
+        SenderWifiManager.getInstance().nowdevice=device.salutDevice;
+        startActivity(intent);
 
     }
 
@@ -57,8 +54,8 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     }
 
     private void initSalut() {
-        SalutDataReceiver dataReceiver = new SalutDataReceiver(this, this);
-        SalutServiceData sd = new SalutServiceData("sas", 52391, "2232");
+        SalutDataReceiver dataReceiver = new SalutDataReceiver(this, SenderWifiManager.getInstance());
+        SalutServiceData sd = new SalutServiceData("sas", 52391, "xiaolan");
         SalutCallback sc = new SalutCallback() {
             @Override
             public void call() {
@@ -66,25 +63,12 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
             }
         };
         snetwork = new Salut(dataReceiver, sd, sc);
-        snetwork.startNetworkService(new SalutDeviceCallback() {
-            @Override
-            public void call(SalutDevice salutDevice) {
-                Log.d("233", salutDevice.readableName + "has connected");
-            }
-        });
+        SenderWifiManager.getInstance().init(snetwork,dfra);
+
 
         //
 
-        snetwork.discoverNetworkServices(new SalutCallback() {
-            @Override
-            public void call() {
-                Log.d("Salut", "Look at all these devices! " + snetwork.foundDevices.toString());
-                Iterator<SalutDevice> it=snetwork.foundDevices.iterator();
-                while(it.hasNext()) {
-                    dfra.addDevice(it.next());
-                }
-            }
-        }, true);
+
     }
 
 
@@ -92,4 +76,6 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     public void onDataReceived(Object o) {
         Log.d("Salut - on DataReceived", o.toString());
     }
+
+
 }
