@@ -1,1 +1,1 @@
-include ':app', ':bthelper'
+include ':app'

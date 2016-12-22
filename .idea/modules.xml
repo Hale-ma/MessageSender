@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/MessgaeSender.iml" filepath="$PROJECT_DIR$/MessgaeSender.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/bthelper/bthelper.iml" filepath="$PROJECT_DIR$/bthelper/bthelper.iml" />
     </modules>
   </component>
 </project>

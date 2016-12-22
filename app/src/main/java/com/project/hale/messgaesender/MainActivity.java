@@ -22,16 +22,11 @@ import com.project.hale.messgaesender.Wifi.WifiBoardCastManager;
 
 import java.util.List;
 
-import top.wuhaojie.bthelper.BtHelperClient;
-import top.wuhaojie.bthelper.MessageItem;
-import top.wuhaojie.bthelper.OnSearchDeviceListener;
-import top.wuhaojie.bthelper.OnSendMessageListener;
-
 public class MainActivity extends AppCompatActivity implements DeviceListFragment.OnFragmentInteractionListener, SalutDataCallback {
     WifiP2pManager mManager;
     WifiP2pManager.Channel mChannel;
     WifiBoardCastManager wm = WifiBoardCastManager.getsInstance();
-    BtHelperClient btHelperClient;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,48 +44,6 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
 
 
         setContentView(R.layout.activity_main);
-        btHelperClient = BtHelperClient.from(MainActivity.this);
-        btHelperClient.searchDevices(new OnSearchDeviceListener() {
-            @Override
-            public void onStartDiscovery() {
-                Log.d("BT","onStart");
-            }
-
-            @Override
-            public void onNewDeviceFounded(BluetoothDevice bluetoothDevice) {
-                Log.d("BT","onFound"+bluetoothDevice.getAddress());
-                MessageItem mi=new MessageItem("Messageoasfklajsasdhfkajsfdhk");
-                btHelperClient.sendMessage(bluetoothDevice.getAddress(), mi, true, new OnSendMessageListener() {
-                    @Override
-                    public void onSuccess(int i, String s) {
-                        Log.d("BT","onSuccess"+i+" "+s);
-                    }
-
-                    @Override
-                    public void onConnectionLost(Exception e) {
-                        Log.d("BT","onConnectionLost");
-                        e.printStackTrace();
-                    }
-
-                    @Override
-                    public void onError(Exception e) {
-                        Log.d("BT","onError"+e);
-                    }
-                });
-
-            }
-
-            @Override
-            public void onSearchCompleted(List<BluetoothDevice> bondedList, List<BluetoothDevice> newList) {
-                Log.d("BT", "SearchCompleted: bondedList" + bondedList.toString());
-                Log.d("BT", "SearchCompleted: newList" + newList.toString());
-            }
-
-            @Override
-            public void onError(Exception e) {
-                Log.d("BT","onError"+e);
-            }
-        });
    //     initwifi();
 
 
