@@ -12,9 +12,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.peak.salut.SalutDevice;
 import com.project.hale.messgaesender.Wifi.SenderDevice;
-import com.project.hale.messgaesender.Wifi.WifiBoardCastManager;
+import com.project.hale.messgaesender.Wifi.SenderWifiManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +65,7 @@ public class DeviceListFragment extends ListFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         // set list adapter with row layout to adapter data
-        this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, WifiBoardCastManager.getsInstance().getDevice()));
+        this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, SenderWifiManager.getInstance().getDeviceList()));
     }
 
     @Override
@@ -84,7 +83,7 @@ public class DeviceListFragment extends ListFragment {
         View view = inflater.inflate(R.layout.device_list, null);
         TextView myName = (TextView) view.findViewById(R.id.my_name);
         TextView myDetail = (TextView) view.findViewById(R.id.my_detail);
-        myName.setText("My Mac: " + WifiBoardCastManager.getMacAddr());
+        myName.setText("My Mac: " + SenderWifiManager.getMacAddr());
         myDetail.setText("Free");
         return view;
     }
@@ -120,13 +119,13 @@ public class DeviceListFragment extends ListFragment {
     }
 
     public void updateUI() {
-        //this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices,WifiBoardCastManager.getsInstance().getDevice()));
-        this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, slist));
+        this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, SenderWifiManager.getInstance().getDeviceList()));
+      //  this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, slist));
         Log.d("updateUI", "updateUI");
     }
 
-    public void addDevice(SalutDevice s){
-        slist.add(new SenderDevice(s));
+    public void addDevice(SenderDevice s){
+        slist.add(s);
         this.updateUI();
     }
 

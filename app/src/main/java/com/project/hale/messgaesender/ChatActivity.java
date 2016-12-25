@@ -1,22 +1,20 @@
 package com.project.hale.messgaesender;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.EditText;
 
-import com.project.hale.messgaesender.Wifi.Message;
 import com.project.hale.messgaesender.Wifi.SenderWifiManager;
-import com.project.hale.messgaesender.Wifi.WifiBoardCastManager;
 
 public class ChatActivity extends AppCompatActivity {
     EditText input_text;
-    String chating_name;
+    String Macadd;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        chating_name=this.getIntent().getExtras().getString("name");
+        Macadd=this.getIntent().getExtras().getString("MAC");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
         input_text = (EditText) findViewById(R.id.edit_input);
@@ -40,7 +38,7 @@ public class ChatActivity extends AppCompatActivity {
         }
 
         private void sendMessage_boradcast(String message){
-           SenderWifiManager.getInstance().sendmsg(message);
+           SenderWifiManager.getInstance().sendmsg(Macadd,message);
         }
     }
 }

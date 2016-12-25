@@ -1,6 +1,7 @@
 package com.project.hale.messgaesender.Wifi;
 
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.peak.salut.Callbacks.SalutCallback;
@@ -13,7 +14,11 @@ import com.peak.salut.SalutServiceData;
 import com.project.hale.messgaesender.DeviceListFragment;
 import com.project.hale.messgaesender.MainActivity;
 
+import java.net.NetworkInterface;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.ServiceConfigurationError;
 
 /**
@@ -23,9 +28,10 @@ import java.util.ServiceConfigurationError;
 public class SenderWifiManager implements SalutDataCallback {
     private static SenderWifiManager sInstance = new SenderWifiManager();
     public Salut snetwork;
-    public SalutDevice nowdevice;
+    private List<SenderDevice> deviceList=new ArrayList<>();
     private SalutDataReceiver sdr;
     DeviceListFragment dfra = null;
+    public static String MacAddr;
 
     public boolean isInit = false;
     private boolean isDiscovering = false;
@@ -33,7 +39,7 @@ public class SenderWifiManager implements SalutDataCallback {
 
     private Handler d_handler = new Handler();
     private final int SERVICE_DISCOVERY_INTERVAL = 8000;
-
+    private final int RETRY_INTERVAL=2;
     private SenderWifiManager() {
 
     }
@@ -89,18 +95,14 @@ public class SenderWifiManager implements SalutDataCallback {
             snetwork.discoverNetworkServices(new SalutCallback() {
                 @Override
                 public void call() {
-                    Log.d("Salut", "Look at all these devices! " + snetwork.foundDevices.toString());
-                    Log.d("Salut", "Raw data: " + snetwork.rawData.toString());
-                    Iterator<SalutDevice> it = snetwork.foundDevices.iterator();
-                    while (it.hasNext()) {
-                        dfra.addDevice(it.next());
-                    }
+                    praseData();
                     isDiscovering = false;
                 }
             }, true);
         }else {
             count++;
-            if(count>3){
+            if(count>RETRY_INTERVAL){
+                praseData();
                 snetwork.stopServiceDiscovery(false);
                 count=0;
                 isDiscovering=false;
@@ -116,9 +118,9 @@ public class SenderWifiManager implements SalutDataCallback {
         }
     };
 
-    public void sendmsg(String msg) {
+    public void sendmsg(String tar,String msg) {
         snetwork.stopNetworkService(false);
-        SalutServiceData sd = new SalutServiceData("new", 52391, msg);
+        SalutServiceData sd = new SalutServiceData(tar, 52391, msg);
         SalutCallback sc = new SalutCallback() {
             @Override
             public void call() {
@@ -137,6 +139,62 @@ public class SenderWifiManager implements SalutDataCallback {
     @Override
     public void onDataReceived(Object o) {
         Log.d("Salut - on DataReceived", o.toString());
+    }
+
+    public List<SenderDevice> getDeviceList(){
+        return deviceList;
+    }
+
+    private void praseData(){
+    // Log.d("Salut", "Look at all these devices! " + snetwork.foundDevices.toString());
+        Log.d("Salut", "Raw data: " + snetwork.rawData.toString());
+        Iterator<String> it1=snetwork.getReadableFoundMac().iterator();
+        deviceList=new ArrayList<SenderDevice>();
+        while(it1.hasNext()){
+            deviceList.add(new SenderDevice(it1.next()));
+        }
+        dfra.updateUI();
+
+
+        Iterator<String> it = snetwork.rawData.iterator();
+        while (it.hasNext()) {
+            String raw=it.next();
+            String[] splited=raw.split("\\|");
+            //
+
+            //TODO database
+        }
+    }
+
+    @NonNull
+    public static String getMacAddr() {
+        if(MacAddr!=null){
+            return MacAddr;
+        }
+        try {
+            List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface nif : all) {
+                if (!nif.getName().equalsIgnoreCase("wlan0")) continue;
+
+                byte[] macBytes = nif.getHardwareAddress();
+                if (macBytes == null) {
+                    return "";
+                }
+
+                StringBuilder res1 = new StringBuilder();
+                for (byte b : macBytes) {
+                    res1.append(Integer.toHexString(b & 0xFF).compareTo("0")==0?"00:":Integer.toHexString(b & 0xFF) + ":");
+                }
+
+                if (res1.length() > 0) {
+                    res1.deleteCharAt(res1.length() - 1);
+                }
+                MacAddr=res1.toString();
+                return res1.toString();
+            }
+        } catch (Exception ex) {
+        }
+        return "02:00:00:00:00:00";
     }
 
 
