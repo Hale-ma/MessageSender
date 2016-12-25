@@ -1,5 +1,6 @@
 package com.project.hale.messgaesender.Wifi;
 
+import android.os.Handler;
 import android.util.Log;
 
 import com.peak.salut.Callbacks.SalutCallback;
@@ -13,6 +14,7 @@ import com.project.hale.messgaesender.DeviceListFragment;
 import com.project.hale.messgaesender.MainActivity;
 
 import java.util.Iterator;
+import java.util.ServiceConfigurationError;
 
 /**
  * Created by mahon on 2016/12/20.
@@ -24,7 +26,13 @@ public class SenderWifiManager implements SalutDataCallback {
     public SalutDevice nowdevice;
     private SalutDataReceiver sdr;
     DeviceListFragment dfra = null;
-    public boolean isInit=false;
+
+    public boolean isInit = false;
+    private boolean isDiscovering = false;
+    private int count=0;
+
+    private Handler d_handler = new Handler();
+    private final int SERVICE_DISCOVERY_INTERVAL = 8000;
 
     private SenderWifiManager() {
 
@@ -34,8 +42,8 @@ public class SenderWifiManager implements SalutDataCallback {
         return sInstance;
     }
 
-    public void init(SalutDataReceiver sdr,Salut s, DeviceListFragment dlf) {
-        this.sdr=sdr;
+    public void init(SalutDataReceiver sdr, Salut s, DeviceListFragment dlf) {
+        this.sdr = sdr;
         this.snetwork = s;
         this.dfra = dlf;
         snetwork.startNetworkService(new SalutDeviceCallback() {
@@ -43,24 +51,11 @@ public class SenderWifiManager implements SalutDataCallback {
             public void call(SalutDevice salutDevice) {
                 Log.d("Salut", salutDevice.readableName + "has connected");
             }
-        });
-        snetwork.discoverNetworkServices(new SalutCallback() {
-            @Override
-            public void call() {
-                Log.d("Salut", "Look at all these devices! " + snetwork.foundDevices.toString());
-                Iterator<SalutDevice> it = snetwork.foundDevices.iterator();
-                while (it.hasNext()) {
-                    dfra.addDevice(it.next());
-                }
-            }
-        }, true);
+        });//althou
+        d_handler.postDelayed(mServiceDiscoveringRunnable, SERVICE_DISCOVERY_INTERVAL);
 
     }
 
-    @Override
-    public void onDataReceived(Object o) {
-        Log.d("Salut - on DataReceived", o.toString());
-    }
 
 //    public boolean sendto(Message ms) {
 //        final String sdtail = nowdevice.toString();
@@ -87,7 +82,41 @@ public class SenderWifiManager implements SalutDataCallback {
 //        return true;
 //    }
 
-    public void sendmsg(String msg){
+    public void discover() {
+        Log.d("Salut", "discovering..." + isDiscovering);
+        if (!isDiscovering) {
+            isDiscovering = true;
+            snetwork.discoverNetworkServices(new SalutCallback() {
+                @Override
+                public void call() {
+                    Log.d("Salut", "Look at all these devices! " + snetwork.foundDevices.toString());
+                    Log.d("Salut", "Raw data: " + snetwork.rawData.toString());
+                    Iterator<SalutDevice> it = snetwork.foundDevices.iterator();
+                    while (it.hasNext()) {
+                        dfra.addDevice(it.next());
+                    }
+                    isDiscovering = false;
+                }
+            }, true);
+        }else {
+            count++;
+            if(count>3){
+                snetwork.stopServiceDiscovery(false);
+                count=0;
+                isDiscovering=false;
+            }
+        }
+    }
+
+    private Runnable mServiceDiscoveringRunnable = new Runnable() {
+        @Override
+        public void run() {
+            discover();
+            d_handler.postDelayed(mServiceDiscoveringRunnable, SERVICE_DISCOVERY_INTERVAL);
+        }
+    };
+
+    public void sendmsg(String msg) {
         snetwork.stopNetworkService(false);
         SalutServiceData sd = new SalutServiceData("new", 52391, msg);
         SalutCallback sc = new SalutCallback() {
@@ -104,4 +133,11 @@ public class SenderWifiManager implements SalutDataCallback {
             }
         });
     }
+
+    @Override
+    public void onDataReceived(Object o) {
+        Log.d("Salut - on DataReceived", o.toString());
+    }
+
+
 }
