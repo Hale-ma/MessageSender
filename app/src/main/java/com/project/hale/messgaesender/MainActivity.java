@@ -1,6 +1,9 @@
 package com.project.hale.messgaesender;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -13,15 +16,23 @@ import com.peak.salut.SalutServiceData;
 import com.project.hale.messgaesender.Wifi.SenderDevice;
 import com.project.hale.messgaesender.Wifi.SenderWifiManager;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Map;
+
 public class MainActivity extends AppCompatActivity implements DeviceListFragment.OnFragmentInteractionListener, SalutDataCallback {
     Salut snetwork;
     DeviceListFragment dfra;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         dfra = (DeviceListFragment) getSupportFragmentManager().findFragmentById(R.id.frag_list);
         initSalut();
+
         //  initwifi();
 
 
@@ -39,9 +50,11 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     }
 
     private void initSalut() {
-        if(!SenderWifiManager.getInstance().isInit) {
+        if (!SenderWifiManager.getInstance().isInit) {
             SalutDataReceiver dataReceiver = new SalutDataReceiver(this, SenderWifiManager.getInstance());
-            SalutServiceData sd = new SalutServiceData("all", 52391, "xiaolan");
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            String date = simpleDateFormat.format(new Date());
+            SalutServiceData sd = new SalutServiceData("loc|all|" + date, 52391, "x");
             SalutCallback sc = new SalutCallback() {
                 @Override
                 public void call() {
@@ -49,11 +62,23 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
                 }
             };
             snetwork = new Salut(dataReceiver, sd, sc);
-            SenderWifiManager.getInstance().init(dataReceiver, snetwork, dfra);
-            SenderWifiManager.getInstance().isInit=true;
-        }
-        else{
-            Log.d("Salut - me","no need to init");
+            SharedPreferences preferences = getSharedPreferences("user-around", Context.MODE_PRIVATE);
+            Map<String, ?> usr = preferences.getAll();
+            SenderWifiManager.getInstance().deviceList = new ArrayList<SenderDevice>();
+            Iterator<String> iter = usr.keySet().iterator();
+            while (iter.hasNext()) {
+                String mac = iter.next();
+                String time = (String) usr.get(mac);
+                SenderWifiManager.getInstance().deviceList.add(new SenderDevice(mac, 0, time));
+            }
+            dfra.updateUI();
+
+
+            SQLiteDatabase mainDB = SQLiteDatabase.openOrCreateDatabase(this.getFilesDir().getAbsolutePath().replace("files", "databases") + "fridge.db", null);
+            SenderWifiManager.getInstance().init(dataReceiver, snetwork, dfra, mainDB, preferences);
+            SenderWifiManager.getInstance().isInit = true;
+        } else {
+            Log.d("Salut", "no need to init");
         }
     }
 

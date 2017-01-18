@@ -172,10 +172,10 @@ public class DeviceListFragment extends ListFragment {
                 TextView top = (TextView) v.findViewById(R.id.device_name);
                 TextView bottom = (TextView) v.findViewById(R.id.device_details);
                 if (top != null) {
-                    top.setText(device.toString());
+                    top.setText(device.toString()+"dis"+device.distance);
                 }
                 if (bottom != null) {
-                    bottom.setText("distance:" + device.distance + "nearest node:" + "?");
+                    bottom.setText(device.time);
                 }
                 //  Log.d("adapter", "WiFiPeerListAdapter : getView : " + device.toString());
             }
