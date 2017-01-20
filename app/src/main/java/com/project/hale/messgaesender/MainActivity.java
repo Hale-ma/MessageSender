@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
             dfra.updateUI();
 
 
-            SQLiteDatabase mainDB = SQLiteDatabase.openOrCreateDatabase(this.getFilesDir().getAbsolutePath().replace("files", "databases") + "fridge.db", null);
+            SQLiteDatabase mainDB = SQLiteDatabase.openOrCreateDatabase(this.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
             SenderWifiManager.getInstance().init(dataReceiver, snetwork, dfra, mainDB, preferences);
             SenderWifiManager.getInstance().isInit = true;
         } else {

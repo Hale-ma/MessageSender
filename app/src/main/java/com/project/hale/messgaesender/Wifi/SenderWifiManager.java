@@ -1,6 +1,7 @@
 package com.project.hale.messgaesender.Wifi;
 
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -61,7 +62,7 @@ public class SenderWifiManager implements SalutDataCallback {
         this.dfra = dlf;
         this.mainDB = mdb;
         this.preferences = preferences;
-        mainDB.execSQL("CREATE TABLE IF NOT EXISTS msg(sor char(64),tar char(64),date char(64),msg char(255))");
+        mainDB.execSQL("CREATE TABLE IF NOT EXISTS msg(sor char(64),tar char(64),time char(64),msg char(255))");
         snetwork.startNetworkService(new SalutDeviceCallback() {
             @Override
             public void call(SalutDevice salutDevice) {
@@ -71,32 +72,6 @@ public class SenderWifiManager implements SalutDataCallback {
         d_handler.postDelayed(mServiceDiscoveringRunnable, SERVICE_DISCOVERY_INTERVAL);
 
     }
-
-
-//    public boolean sendto(Message ms) {
-//        final String sdtail = nowdevice.toString();
-//        final Message msg = ms;
-//        snetwork.registerWithHost(nowdevice, new SalutCallback() {
-//            @Override
-//            public void call() {
-//                Log.d("Salut", "we are connected:" + sdtail);
-//                snetwork.sendToHost(msg, new SalutCallback() {
-//                    @Override
-//                    public void call() {
-//                        Log.d("Salut", "failed to send!");
-//                    }
-//                });
-//            }
-//        }, new SalutCallback() {
-//            @Override
-//            public void call() {
-//                Log.d("Salut", "failed to connect");
-//            }
-//        });
-//
-//
-//        return true;
-//    }
 
     public void discover() {
         Log.d("Salut", "discovering..." + isDiscovering);
@@ -157,15 +132,6 @@ public class SenderWifiManager implements SalutDataCallback {
     }
 
     private void praseData() {
-        // Log.d("Salut", "Look at all these devices! " + snetwork.foundDevices.toString());
-        //   Log.d("Salut", "Raw data: " + snetwork.rawData.toString());
-//        Iterator<String> it1 = snetwork.getReadableFoundMac().iterator();
-//        deviceList = new ArrayList<SenderDevice>();
-//        while (it1.hasNext()) {
-//            deviceList.add(new SenderDevice(it1.next()));
-//        }
-//        dfra.updateUI();
-
         SharedPreferences.Editor editor = preferences.edit();
         Iterator<String> it = snetwork.rawData.iterator();
         while (it.hasNext()) {
@@ -173,9 +139,15 @@ public class SenderWifiManager implements SalutDataCallback {
             Log.d("Salut", "splited Raw data: " + raw);
             String[] splited = raw.split("\\|");
             editor.putString(splited[0], getTime());
-            Log.d("Salut", splited[2] + " " + getMacAddr()+"cp:"+splited[2].compareTo(getMacAddr()));
+            //Log.d("Salut", "["+splited[2] + "][" + getMacAddr() + "]cp:" + getMacAddr().compareTo(splited[2]));
             if (splited[2].compareTo(getMacAddr()) == 0) {//i am the target!
                 Log.d("Salut", "prase Data: I recieved:" + splited[4] + "from " + splited[0] + " when " + splited[3]);
+                Cursor c = mainDB.rawQuery("SELECT * FROM msg WHERE sor='" + splited[1] + "' and tar='" + splited[2] + "' and time='" + splited[3] + "' and msg ='" + splited[4] + "'", null);
+                if (c.getCount() != 0) {
+                    Log.d("db", "duplicate" + splited[4]);
+                } else {
+                    mainDB.execSQL("INSERT INTO msg('sor','tar','time','msg')values('" + splited[1] + "','" + splited[2] + "','" + splited[3] + "','" + splited[4] + "')");
+                }
             } else if (splited[2].compareTo("all") == 0) {
                 Log.d("Salut", "prase Data: I recieved all from " + splited[0] + " when " + splited[3]);
             } else {
@@ -210,6 +182,7 @@ public class SenderWifiManager implements SalutDataCallback {
         }
         try {
             List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
+            boolean first = true;
             for (NetworkInterface nif : all) {
                 if (!nif.getName().equalsIgnoreCase("wlan0")) continue;
 
@@ -220,7 +193,21 @@ public class SenderWifiManager implements SalutDataCallback {
 
                 StringBuilder res1 = new StringBuilder();
                 for (byte b : macBytes) {
-                    res1.append(Integer.toHexString(b & 0xFF).compareTo("0") == 0 ? "00:" : Integer.toHexString(b & 0xFF) + ":");//TODO fix bug here
+                    //  res1.append(Integer.toHexString(b & 0xFF).compareTo("0") == 0 ? "00:" : Integer.toHexString(b & 0xFF) + ":");//TODO fix bug here
+                    if ((b & 0xFF) < 10) {
+                        if (first) {
+                            res1.append("0" + Integer.toHexString((b & 0xFF) + 2) + ":");
+                        } else {
+                            res1.append("0" + Integer.toHexString(b & 0xFF) + ":");
+                        }
+                    } else {
+                        if (first) {
+                            res1.append(Integer.toHexString((b & 0xFF) + 2) + ":");
+                        } else {
+                            res1.append(Integer.toHexString(b & 0xFF) + ":");
+                        }
+                    }
+                    first = false;
                 }
 
                 if (res1.length() > 0) {
@@ -235,8 +222,14 @@ public class SenderWifiManager implements SalutDataCallback {
     }
 
     private String getTime() {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return simpleDateFormat.format(new Date());
+    }
+
+    public void endservice() {
+        snetwork.stopServiceDiscovery(false);
+        snetwork.stopNetworkService(false);
+        mainDB.close();
     }
 
 

@@ -172,7 +172,7 @@ public class DeviceListFragment extends ListFragment {
                 TextView top = (TextView) v.findViewById(R.id.device_name);
                 TextView bottom = (TextView) v.findViewById(R.id.device_details);
                 if (top != null) {
-                    top.setText(device.toString()+"dis"+device.distance);
+                    top.setText(device.toString()+" dis:"+device.distance);
                 }
                 if (bottom != null) {
                     bottom.setText(device.time);

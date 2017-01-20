@@ -11,7 +11,7 @@
     tools:context="com.project.hale.messgaesender.ChatActivity">
 
     <ListView
-        android:id="@android:id/list"
+        android:id="@+id/msglist"
         android:stackFromBottom="true"
         android:transcriptMode="alwaysScroll"
         android:layout_weight="1.0"
