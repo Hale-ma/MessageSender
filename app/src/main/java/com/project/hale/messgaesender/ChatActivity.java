@@ -26,10 +26,10 @@ public class ChatActivity extends AppCompatActivity {
     String Macadd;
     List<Chatmsg> chatmsgList = new ArrayList<>();
     SQLiteDatabase mainDB;
+    chatMsgAdapter chatMsgAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         Macadd = this.getIntent().getExtras().getString("MAC");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
@@ -41,7 +41,8 @@ public class ChatActivity extends AppCompatActivity {
         refreshmsglist();
 
         //Chatmsg test = new Chatmsg("00:22:22:22:22", "c2:c9:76:d9:ff:b7", "2016-12-3 17:13:03", "shishikan");
-        msglist.setAdapter(new chatMsgAdapter(this, R.id.msglist, chatmsgList));
+        chatMsgAdapter = new chatMsgAdapter(this, R.id.msglist, chatmsgList);
+        msglist.setAdapter(chatMsgAdapter);
     }
 
     private void refreshmsglist() {
@@ -53,7 +54,7 @@ public class ChatActivity extends AppCompatActivity {
             String time = cursor.getString(cursor.getColumnIndex("time"));
             Chatmsg tempmsg = new Chatmsg(sor, tar, time, msg);
             chatmsgList.add(tempmsg);
-           // Log.d("db",sor+" "+tar+" "+time+" "+msg);
+            // Log.d("db",sor+" "+tar+" "+time+" "+msg);
         }
         cursor.close();
     }
@@ -66,9 +67,16 @@ public class ChatActivity extends AppCompatActivity {
             if (event.getAction() == KeyEvent.ACTION_DOWN) {
                 if ((keyCode == KeyEvent.KEYCODE_DPAD_CENTER) || (keyCode == KeyEvent.KEYCODE_ENTER)) {
                     String newMsg = input_text.getText().toString();
-                    input_text.setText("");
-                    this.sendMessage_boradcast(newMsg);
-                    return true;
+                    if (newMsg.length() > 255) {
+                        input_text.setError("Message can not be too long");
+                    } else {
+                        input_text.setText("");
+                        this.sendMessage_boradcast(newMsg);
+                        mainDB.execSQL("INSERT INTO msg('sor','tar','time','msg')values('" + SenderWifiManager.getMacAddr() + "','" + Macadd + "','" + SenderWifiManager.getTime() + "','" + newMsg + "')");
+                        refreshmsglist();
+                        chatMsgAdapter.notifyDataSetChanged();
+                        return true;
+                    }
                 }
             }
             return false;
@@ -115,10 +123,16 @@ public class ChatActivity extends AppCompatActivity {
             TextView time = (TextView) v.findViewById(R.id.msg_time);
             TextView msg = (TextView) v.findViewById(R.id.msg_row);
             time.setText(cm.time);
-            time.setText(cm.msg);
+            msg.setText(cm.msg);
             return v;
         }
 
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        mainDB.close();
+        super.onDestroy();
     }
 }

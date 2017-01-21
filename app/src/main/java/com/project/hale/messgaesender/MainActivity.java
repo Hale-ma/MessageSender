@@ -32,10 +32,7 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
         setContentView(R.layout.activity_main);
         dfra = (DeviceListFragment) getSupportFragmentManager().findFragmentById(R.id.frag_list);
         initSalut();
-
         //  initwifi();
-
-
     }
 
     @Override
@@ -88,5 +85,9 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
         Log.d("Salut - on DataReceived", o.toString());
     }
 
-
+    @Override
+    protected void onDestroy() {
+        SenderWifiManager.getInstance().endservice();
+        super.onDestroy();
+    }
 }

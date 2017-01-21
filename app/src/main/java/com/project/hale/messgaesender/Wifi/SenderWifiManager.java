@@ -140,22 +140,21 @@ public class SenderWifiManager implements SalutDataCallback {
             String[] splited = raw.split("\\|");
             editor.putString(splited[0], getTime());
             //Log.d("Salut", "["+splited[2] + "][" + getMacAddr() + "]cp:" + getMacAddr().compareTo(splited[2]));
-            if (splited[2].compareTo(getMacAddr()) == 0) {//i am the target!
-                Log.d("Salut", "prase Data: I recieved:" + splited[4] + "from " + splited[0] + " when " + splited[3]);
+            if (splited[2].compareTo("all") == 0) {
+                Log.d("Salut", "prase Data: I recieved all from " + splited[0] + " when " + splited[3]);
+            } else {
                 Cursor c = mainDB.rawQuery("SELECT * FROM msg WHERE sor='" + splited[1] + "' and tar='" + splited[2] + "' and time='" + splited[3] + "' and msg ='" + splited[4] + "'", null);
                 if (c.getCount() != 0) {
                     Log.d("db", "duplicate" + splited[4]);
                 } else {
                     mainDB.execSQL("INSERT INTO msg('sor','tar','time','msg')values('" + splited[1] + "','" + splited[2] + "','" + splited[3] + "','" + splited[4] + "')");
+                    if (splited[2].compareTo(getMacAddr()) == 0) {//i am the target!
+                        Log.d("Salut", "prase Data: I recieved:" + splited[4] + "from " + splited[0] + " when " + splited[3]);
+                    } else {//i am not the target
+                        Log.d("Salut", "prase Data: I need to route the messgae:" + splited[4] + "from " + splited[0] + " when " + splited[3]);
+                    }
                 }
-            } else if (splited[2].compareTo("all") == 0) {
-                Log.d("Salut", "prase Data: I recieved all from " + splited[0] + " when " + splited[3]);
-            } else {
-                Log.d("Salut", "prase Data: I need to route the messgae:" + splited[4] + "from " + splited[0] + " when " + splited[3]);
             }
-            //
-
-            //TODO database
 
             snetwork.rawData = new ArrayList<String>();
         }
@@ -221,7 +220,7 @@ public class SenderWifiManager implements SalutDataCallback {
         return "02:00:00:00:00:00";
     }
 
-    private String getTime() {
+    public static String getTime() {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return simpleDateFormat.format(new Date());
     }
