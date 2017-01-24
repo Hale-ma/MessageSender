@@ -4,6 +4,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -27,6 +29,7 @@ public class ChatActivity extends AppCompatActivity {
     List<Chatmsg> chatmsgList = new ArrayList<>();
     SQLiteDatabase mainDB;
     chatMsgAdapter chatMsgAdapter;
+    Handler mUpdateHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,10 +42,18 @@ public class ChatActivity extends AppCompatActivity {
         mainDB = SQLiteDatabase.openOrCreateDatabase(this.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
         mainDB.execSQL("CREATE TABLE IF NOT EXISTS msg(sor char(64),tar char(64),time char(64),msg char(255))");
         refreshmsglist();
-
-        //Chatmsg test = new Chatmsg("00:22:22:22:22", "c2:c9:76:d9:ff:b7", "2016-12-3 17:13:03", "shishikan");
         chatMsgAdapter = new chatMsgAdapter(this, R.id.msglist, chatmsgList);
         msglist.setAdapter(chatMsgAdapter);
+        mUpdateHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                refreshmsglist();
+                chatMsgAdapter.notifyDataSetChanged();
+            }
+        };
+        SenderWifiManager.getInstance().setMsg_handler(mUpdateHandler);
+
+
     }
 
     private void refreshmsglist() {

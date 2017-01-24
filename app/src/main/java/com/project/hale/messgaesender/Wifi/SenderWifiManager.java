@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -45,6 +46,7 @@ public class SenderWifiManager implements SalutDataCallback {
     private int count = 0;
 
     private Handler d_handler = new Handler();
+    private Handler msg_handler;
     private final int SERVICE_DISCOVERY_INTERVAL = 8000;
     private final int RETRY_INTERVAL = 2;
 
@@ -105,8 +107,7 @@ public class SenderWifiManager implements SalutDataCallback {
 
     public void sendmsg(String tar, String msg) {
         snetwork.stopNetworkService(false);
-        String date = getTime();
-        SalutServiceData sd = new SalutServiceData(getMacAddr() + "|" + tar + "|" + date, 52391, msg);
+        SalutServiceData sd = new SalutServiceData(getMacAddr() + "|" + tar + "|" +getTime(), 52391, msg);
         SalutCallback sc = new SalutCallback() {
             @Override
             public void call() {
@@ -148,6 +149,7 @@ public class SenderWifiManager implements SalutDataCallback {
                     Log.d("db", "duplicate" + splited[4]);
                 } else {
                     mainDB.execSQL("INSERT INTO msg('sor','tar','time','msg')values('" + splited[1] + "','" + splited[2] + "','" + splited[3] + "','" + splited[4] + "')");
+                    msg_handler.handleMessage(new Message());
                     if (splited[2].compareTo(getMacAddr()) == 0) {//i am the target!
                         Log.d("Salut", "prase Data: I recieved:" + splited[4] + "from " + splited[0] + " when " + splited[3]);
                     } else {//i am not the target
@@ -231,5 +233,7 @@ public class SenderWifiManager implements SalutDataCallback {
         mainDB.close();
     }
 
-
+    public void setMsg_handler(Handler msg_handler){
+        this.msg_handler=msg_handler;
+    }
 }
