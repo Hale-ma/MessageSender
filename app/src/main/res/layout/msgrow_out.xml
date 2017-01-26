@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:orientation="horizontal">
-
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/msg_row"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_weight="1.0"
-        android:gravity="right|center_vertical"
-        android:paddingRight="10dp"
-        android:textSize="14sp"
-        tools:background="@android:color/holo_green_light" />
+        android:gravity="center_vertical|right"
+        android:textColor="@android:color/holo_green_light"
+        android:textStyle="normal|bold" />
 
 
     <LinearLayout
@@ -22,7 +18,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="right"
         android:gravity="right|center_vertical"
-        android:orientation="vertical">
+        android:orientation="horizontal">
 
         <!--  Sender and Date -->
         <TextView
@@ -36,6 +32,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="right" />
+
     </LinearLayout>
 
 

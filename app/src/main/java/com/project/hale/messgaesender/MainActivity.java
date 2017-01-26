@@ -87,6 +87,7 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
 
     @Override
     protected void onDestroy() {
+        Log.d("Salut","Ending");
         SenderWifiManager.getInstance().endservice();
         super.onDestroy();
     }

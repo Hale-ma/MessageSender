@@ -54,7 +54,7 @@ public class SenderWifiManager implements SalutDataCallback {
 
     }
 
-    public static SenderWifiManager getInstance() {
+    public static synchronized SenderWifiManager getInstance() {
         return sInstance;
     }
 
@@ -90,7 +90,7 @@ public class SenderWifiManager implements SalutDataCallback {
             count++;
             if (count > RETRY_INTERVAL) {
                 praseData();
-                snetwork.stopServiceDiscovery(false);
+                snetwork.stopServiceDiscovery(true);
                 count = 0;
                 isDiscovering = false;
             }
@@ -107,7 +107,7 @@ public class SenderWifiManager implements SalutDataCallback {
 
     public void sendmsg(String tar, String msg) {
         snetwork.stopNetworkService(false);
-        SalutServiceData sd = new SalutServiceData(getMacAddr() + "|" + tar + "|" +getTime(), 52391, msg);
+        SalutServiceData sd = new SalutServiceData(getMacAddr() + "|" + tar + "|" + getTime(), 52391, msg);
         SalutCallback sc = new SalutCallback() {
             @Override
             public void call() {
@@ -149,7 +149,9 @@ public class SenderWifiManager implements SalutDataCallback {
                     Log.d("db", "duplicate" + splited[4]);
                 } else {
                     mainDB.execSQL("INSERT INTO msg('sor','tar','time','msg')values('" + splited[1] + "','" + splited[2] + "','" + splited[3] + "','" + splited[4] + "')");
-                    msg_handler.handleMessage(new Message());
+                    if (msg_handler != null) {
+                        msg_handler.handleMessage(new Message());
+                    }
                     if (splited[2].compareTo(getMacAddr()) == 0) {//i am the target!
                         Log.d("Salut", "prase Data: I recieved:" + splited[4] + "from " + splited[0] + " when " + splited[3]);
                     } else {//i am not the target
@@ -233,7 +235,7 @@ public class SenderWifiManager implements SalutDataCallback {
         mainDB.close();
     }
 
-    public void setMsg_handler(Handler msg_handler){
-        this.msg_handler=msg_handler;
+    public void setMsg_handler(Handler msg_handler) {
+        this.msg_handler = msg_handler;
     }
 }

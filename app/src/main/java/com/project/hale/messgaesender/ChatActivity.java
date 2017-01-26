@@ -48,7 +48,10 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void handleMessage(Message msg) {
                 refreshmsglist();
-                chatMsgAdapter.notifyDataSetChanged();
+                chatMsgAdapter = new chatMsgAdapter(getApplicationContext(), R.id.msglist, chatmsgList);
+                msglist.setAdapter(chatMsgAdapter);
+                msglist.smoothScrollToPosition(chatmsgList.size() - 1);
+
             }
         };
         SenderWifiManager.getInstance().setMsg_handler(mUpdateHandler);
@@ -65,7 +68,6 @@ public class ChatActivity extends AppCompatActivity {
             String time = cursor.getString(cursor.getColumnIndex("time"));
             Chatmsg tempmsg = new Chatmsg(sor, tar, time, msg);
             chatmsgList.add(tempmsg);
-            // Log.d("db",sor+" "+tar+" "+time+" "+msg);
         }
         cursor.close();
     }
@@ -79,13 +81,18 @@ public class ChatActivity extends AppCompatActivity {
                 if ((keyCode == KeyEvent.KEYCODE_DPAD_CENTER) || (keyCode == KeyEvent.KEYCODE_ENTER)) {
                     String newMsg = input_text.getText().toString();
                     if (newMsg.length() > 255) {
-                        input_text.setError("Message can not be too long");
+                        input_text.setError("Message can not be too long!");
+                    } else if (newMsg.length() == 0) {
+                        input_text.setError("Can not send empty message!");
                     } else {
                         input_text.setText("");
                         this.sendMessage_boradcast(newMsg);
                         mainDB.execSQL("INSERT INTO msg('sor','tar','time','msg')values('" + SenderWifiManager.getMacAddr() + "','" + Macadd + "','" + SenderWifiManager.getTime() + "','" + newMsg + "')");
-                        refreshmsglist();
-                        chatMsgAdapter.notifyDataSetChanged();
+                        chatmsgList.add(new Chatmsg(SenderWifiManager.getMacAddr(), Macadd, SenderWifiManager.getTime(), newMsg));// make a temp message object to update the UI
+                        chatMsgAdapter = new chatMsgAdapter(getApplicationContext(), R.id.msglist, chatmsgList);
+                        msglist.setAdapter(chatMsgAdapter);
+                        msglist.smoothScrollToPosition(chatmsgList.size() - 1);
+
                         return true;
                     }
                 }
@@ -110,17 +117,16 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private class chatMsgAdapter extends ArrayAdapter<Chatmsg> {
-        private List<Chatmsg> msgs;
+        LayoutInflater vi = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         public chatMsgAdapter(Context context, int textViewResourceId,
                               List<Chatmsg> objects) {
             super(context, textViewResourceId, objects);
-            msgs = objects;
         }
 
         public View getView(int position, View convertView, ViewGroup parent) {
             View v = convertView;
-            LayoutInflater vi = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
             Chatmsg cm = this.getItem(position);
             if (cm.tar.compareTo(SenderWifiManager.getMacAddr()) == 0) {
                 if (v == null) {
@@ -133,6 +139,7 @@ public class ChatActivity extends AppCompatActivity {
             }
             TextView time = (TextView) v.findViewById(R.id.msg_time);
             TextView msg = (TextView) v.findViewById(R.id.msg_row);
+            TextView send = (TextView) v.findViewById(R.id.msg_sender);
             time.setText(cm.time);
             msg.setText(cm.msg);
             return v;
