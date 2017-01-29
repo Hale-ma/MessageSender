@@ -60,16 +60,18 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void refreshmsglist() {
-        Cursor cursor = mainDB.rawQuery("SELECT * from msg where tar ='" + Macadd + "' or sor ='" + Macadd + "' order by time", null);
-        while (cursor.moveToNext()) {
-            String tar = cursor.getString(cursor.getColumnIndex("tar"));
-            String sor = cursor.getString(cursor.getColumnIndex("sor"));
-            String msg = cursor.getString(cursor.getColumnIndex("msg"));
-            String time = cursor.getString(cursor.getColumnIndex("time"));
-            Chatmsg tempmsg = new Chatmsg(sor, tar, time, msg);
-            chatmsgList.add(tempmsg);
+        if (mainDB.isOpen()) {
+            Cursor cursor = mainDB.rawQuery("SELECT * from msg where tar ='" + Macadd + "' or sor ='" + Macadd + "' order by time", null);
+            while (cursor.moveToNext()) {
+                String tar = cursor.getString(cursor.getColumnIndex("tar"));
+                String sor = cursor.getString(cursor.getColumnIndex("sor"));
+                String msg = cursor.getString(cursor.getColumnIndex("msg"));
+                String time = cursor.getString(cursor.getColumnIndex("time"));
+                Chatmsg tempmsg = new Chatmsg(sor, tar, time, msg);
+                chatmsgList.add(tempmsg);
+            }
+            cursor.close();
         }
-        cursor.close();
     }
 
 

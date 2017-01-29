@@ -1,5 +1,6 @@
 package com.project.hale.messgaesender.Wifi;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -44,6 +45,8 @@ public class SenderWifiManager implements SalutDataCallback {
     public boolean isInit = false;
     private boolean isDiscovering = false;
     private int count = 0;
+    private SalutServiceData cachedata = null;
+    private Context context;
 
     private Handler d_handler = new Handler();
     private Handler msg_handler;
@@ -58,11 +61,12 @@ public class SenderWifiManager implements SalutDataCallback {
         return sInstance;
     }
 
-    public void init(SalutDataReceiver sdr, Salut s, DeviceListFragment dlf, SQLiteDatabase mdb, SharedPreferences preferences) {
+    public void init(SalutDataReceiver sdr, Salut s, DeviceListFragment dlf, Context context, SharedPreferences preferences) {
         this.sdr = sdr;
         this.snetwork = s;
         this.dfra = dlf;
-        this.mainDB = mdb;
+        this.mainDB = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
+        this.context = context;
         this.preferences = preferences;
         mainDB.execSQL("CREATE TABLE IF NOT EXISTS msg(sor char(64),tar char(64),time char(64),msg char(255))");
         snetwork.startNetworkService(new SalutDeviceCallback() {
@@ -74,6 +78,7 @@ public class SenderWifiManager implements SalutDataCallback {
         d_handler.postDelayed(mServiceDiscoveringRunnable, SERVICE_DISCOVERY_INTERVAL);
 
     }
+
 
     public void discover() {
         Log.d("Salut", "discovering..." + isDiscovering);
@@ -91,6 +96,7 @@ public class SenderWifiManager implements SalutDataCallback {
             if (count > RETRY_INTERVAL) {
                 praseData();
                 snetwork.stopServiceDiscovery(true);
+
                 count = 0;
                 isDiscovering = false;
             }
@@ -108,6 +114,7 @@ public class SenderWifiManager implements SalutDataCallback {
     public void sendmsg(String tar, String msg) {
         snetwork.stopNetworkService(false);
         SalutServiceData sd = new SalutServiceData(getMacAddr() + "|" + tar + "|" + getTime(), 52391, msg);
+        cachedata = sd;
         SalutCallback sc = new SalutCallback() {
             @Override
             public void call() {
@@ -173,7 +180,9 @@ public class SenderWifiManager implements SalutDataCallback {
             String time = (String) usr.get(mac);
             deviceList.add(new SenderDevice(mac, 0, time));
         }
-        dfra.updateUI();
+        if (dfra != null) {
+            dfra.updateUI();
+        }
 
 
     }

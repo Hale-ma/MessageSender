@@ -69,10 +69,8 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
                 SenderWifiManager.getInstance().deviceList.add(new SenderDevice(mac, 0, time));
             }
             dfra.updateUI();
-
-
-            SQLiteDatabase mainDB = SQLiteDatabase.openOrCreateDatabase(this.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
-            SenderWifiManager.getInstance().init(dataReceiver, snetwork, dfra, mainDB, preferences);
+//            SQLiteDatabase mainDB = SQLiteDatabase.openOrCreateDatabase(this.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
+            SenderWifiManager.getInstance().init(dataReceiver, snetwork, dfra, this, preferences);
             SenderWifiManager.getInstance().isInit = true;
         } else {
             Log.d("Salut", "no need to init");
@@ -87,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
 
     @Override
     protected void onDestroy() {
-        Log.d("Salut","Ending");
+        Log.d("Salut", "Ending");
         SenderWifiManager.getInstance().endservice();
         super.onDestroy();
     }
