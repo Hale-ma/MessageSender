@@ -17,7 +17,6 @@ import com.peak.salut.SalutDataReceiver;
 import com.peak.salut.SalutDevice;
 import com.peak.salut.SalutServiceData;
 import com.project.hale.messgaesender.DeviceListFragment;
-import com.project.hale.messgaesender.MainActivity;
 
 import java.net.NetworkInterface;
 import java.text.SimpleDateFormat;
@@ -27,7 +26,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.ServiceConfigurationError;
 
 /**
  * Created by mahon on 2016/12/20.
@@ -45,13 +43,13 @@ public class SenderWifiManager implements SalutDataCallback {
     public boolean isInit = false;
     private boolean isDiscovering = false;
     private int count = 0;
-    private SalutServiceData cachedata = null;
+    private SalutServiceData cachedata = new SalutServiceData("loc|all|" + getTime(), 52391, "x");;
     private Context context;
 
     private Handler d_handler = new Handler();
     private Handler msg_handler;
     private final int SERVICE_DISCOVERY_INTERVAL = 8000;
-    private final int RETRY_INTERVAL = 2;
+    private final int RETRY_INTERVAL = 3;
 
     private SenderWifiManager() {
 
@@ -96,7 +94,7 @@ public class SenderWifiManager implements SalutDataCallback {
             if (count > RETRY_INTERVAL) {
                 praseData();
                 snetwork.stopServiceDiscovery(true);
-
+                Salut.disableWiFi(context);
                 count = 0;
                 isDiscovering = false;
             }
@@ -106,8 +104,32 @@ public class SenderWifiManager implements SalutDataCallback {
     private Runnable mServiceDiscoveringRunnable = new Runnable() {
         @Override
         public void run() {
-            discover();
-            d_handler.postDelayed(mServiceDiscoveringRunnable, SERVICE_DISCOVERY_INTERVAL);
+            if (!Salut.isWiFiEnabled(context)) {
+                Salut.enableWiFi(context);
+                try {
+                    Thread.sleep(2500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                SalutCallback sc = new SalutCallback() {
+                    @Override
+                    public void call() {
+                        Log.e("Salut", "not support wifi direct");
+                    }
+                };
+                snetwork = new Salut(sdr, cachedata, sc);
+                snetwork.startNetworkService(new SalutDeviceCallback() {
+                    @Override
+                    public void call(SalutDevice salutDevice) {
+                        Log.d("Salut", salutDevice.readableName + "has connected");
+                    }
+                });
+                discover();
+                d_handler.postDelayed(mServiceDiscoveringRunnable, SERVICE_DISCOVERY_INTERVAL);
+            } else {
+                discover();
+                d_handler.postDelayed(mServiceDiscoveringRunnable, SERVICE_DISCOVERY_INTERVAL);
+            }
         }
     };
 
