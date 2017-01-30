@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MessgaeSender</string>
+    <string name="delete_db">清楚本机数据</string>
+    <string name="empty_message">正在搜索附近的设备...</string>
+    <string name="label_me">我</string>
+    <string name="label_peers">附近设备</string>
+    <string name="success">成功</string>
+</resources>

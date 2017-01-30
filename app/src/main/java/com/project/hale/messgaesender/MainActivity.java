@@ -7,6 +7,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 import com.peak.salut.Callbacks.SalutCallback;
 import com.peak.salut.Callbacks.SalutDataCallback;
@@ -88,5 +91,23 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
         Log.d("Salut", "Ending");
         SenderWifiManager.getInstance().endservice();
         super.onDestroy();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.mainmenu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.menu_settings) {
+            Intent pre = new Intent(MainActivity.this, SettingsActivity.class);
+            startActivity(pre);
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

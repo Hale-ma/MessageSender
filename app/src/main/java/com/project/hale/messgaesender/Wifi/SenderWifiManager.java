@@ -43,13 +43,14 @@ public class SenderWifiManager implements SalutDataCallback {
     public boolean isInit = false;
     private boolean isDiscovering = false;
     private int count = 0;
-    private SalutServiceData cachedata = new SalutServiceData("loc|all|" + getTime(), 52391, "x");;
+    private SalutServiceData cachedata = new SalutServiceData("loc|all|" + getTime(), 52391, "x");
+    ;
     private Context context;
 
     private Handler d_handler = new Handler();
     private Handler msg_handler;
-    private final int SERVICE_DISCOVERY_INTERVAL = 8000;
-    private final int RETRY_INTERVAL = 3;
+    private int SERVICE_DISCOVERY_INTERVAL = 8000;
+    private int RETRY_INTERVAL = 3;
 
     private SenderWifiManager() {
 
@@ -66,6 +67,8 @@ public class SenderWifiManager implements SalutDataCallback {
         this.mainDB = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
         this.context = context;
         this.preferences = preferences;
+        SERVICE_DISCOVERY_INTERVAL = preferences.getInt("checkinterval", 8000);
+        RETRY_INTERVAL = preferences.getInt("retrycount", 3);
         mainDB.execSQL("CREATE TABLE IF NOT EXISTS msg(sor char(64),tar char(64),time char(64),msg char(255))");
         snetwork.startNetworkService(new SalutDeviceCallback() {
             @Override
