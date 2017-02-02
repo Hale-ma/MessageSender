@@ -42,15 +42,14 @@ public class SenderWifiManager implements SalutDataCallback {
     private SharedPreferences preferences;
     public boolean isInit = false;
     private boolean isDiscovering = false;
-    private int count = 0;
     private SalutServiceData cachedata = new SalutServiceData("loc|all|" + getTime(), 52391, "x");
-    ;
     private Context context;
 
     private Handler d_handler = new Handler();
     private Handler msg_handler;
-    private int SERVICE_DISCOVERY_INTERVAL = 8000;
-    private int RETRY_INTERVAL = 3;
+    private int SELF_CHECK_INTERVAL = 20000;
+    private int WIFI_ENABLE_INTERVAL = 3000;
+    private int WIFI_DISABLE_INTERVAL = 1500;
 
     private SenderWifiManager() {
 
@@ -67,8 +66,9 @@ public class SenderWifiManager implements SalutDataCallback {
         this.mainDB = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
         this.context = context;
         this.preferences = preferences;
-        SERVICE_DISCOVERY_INTERVAL = preferences.getInt("checkinterval", 8000);
-        RETRY_INTERVAL = preferences.getInt("retrycount", 3);
+        SELF_CHECK_INTERVAL = preferences.getInt("checkinterval", 20000);
+        WIFI_ENABLE_INTERVAL = preferences.getInt("enable", 3000);
+        WIFI_DISABLE_INTERVAL = preferences.getInt("disable", 1500);
         mainDB.execSQL("CREATE TABLE IF NOT EXISTS msg(sor char(64),tar char(64),time char(64),msg char(255))");
         snetwork.startNetworkService(new SalutDeviceCallback() {
             @Override
@@ -76,64 +76,65 @@ public class SenderWifiManager implements SalutDataCallback {
                 Log.d("Salut", salutDevice.readableName + "has connected");
             }
         });//althou
-        d_handler.postDelayed(mServiceDiscoveringRunnable, SERVICE_DISCOVERY_INTERVAL);
+        discover();
+        d_handler.postDelayed(mServiceDiscoveringRunnable, SELF_CHECK_INTERVAL);
 
     }
 
 
     public void discover() {
         Log.d("Salut", "discovering..." + isDiscovering);
-        if (!isDiscovering) {
-            isDiscovering = true;
-            snetwork.discoverNetworkServices(new SalutCallback() {
-                @Override
-                public void call() {
-                    praseData();
-                    isDiscovering = false;
-                }
-            }, true);
-        } else {
-            count++;
-            if (count > RETRY_INTERVAL) {
+        isDiscovering = true;
+        snetwork.discoverNetworkServices(new SalutCallback() {
+            @Override
+            public void call() {
                 praseData();
-                snetwork.stopServiceDiscovery(true);
-                Salut.disableWiFi(context);
-                count = 0;
-                isDiscovering = false;
+                Log.d("Salut", "Update timer.." + isDiscovering);
+                d_handler.removeCallbacks(mServiceDiscoveringRunnable);
+                d_handler.postDelayed(mServiceDiscoveringRunnable, SELF_CHECK_INTERVAL);
             }
-        }
+        }, true);
+
     }
 
     private Runnable mServiceDiscoveringRunnable = new Runnable() {
         @Override
         public void run() {
-            if (!Salut.isWiFiEnabled(context)) {
-                Salut.enableWiFi(context);
-                try {
-                    Thread.sleep(2500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                SalutCallback sc = new SalutCallback() {
-                    @Override
-                    public void call() {
-                        Log.e("Salut", "not support wifi direct");
-                    }
-                };
-                snetwork = new Salut(sdr, cachedata, sc);
-                snetwork.startNetworkService(new SalutDeviceCallback() {
-                    @Override
-                    public void call(SalutDevice salutDevice) {
-                        Log.d("Salut", salutDevice.readableName + "has connected");
-                    }
-                });
-                discover();
-                d_handler.postDelayed(mServiceDiscoveringRunnable, SERVICE_DISCOVERY_INTERVAL);
-            } else {
-                discover();
-                d_handler.postDelayed(mServiceDiscoveringRunnable, SERVICE_DISCOVERY_INTERVAL);
+
+            Log.d("Salut", "restarting...");
+            praseData();
+            snetwork.stopServiceDiscovery(true);
+            Salut.disableWiFi(context);
+            try {
+                Log.d("Salut", "disableWiFi...");
+                Thread.sleep(WIFI_DISABLE_INTERVAL);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+            Log.d("Salut", "enableWiFi...");
+            Salut.enableWiFi(context);
+            try {
+                Thread.sleep(WIFI_ENABLE_INTERVAL);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            SalutCallback sc = new SalutCallback() {
+                @Override
+                public void call() {
+                    Log.e("Salut", "not support wifi direct");
+                }
+            };
+            snetwork = new Salut(sdr, cachedata, sc);
+            snetwork.startNetworkService(new SalutDeviceCallback() {
+                @Override
+                public void call(SalutDevice salutDevice) {
+                    Log.d("Salut", salutDevice.readableName + "has connected");
+                }
+            });
+            discover();
+            d_handler.postDelayed(mServiceDiscoveringRunnable, SELF_CHECK_INTERVAL);
         }
+
     };
 
     public void sendmsg(String tar, String msg) {
@@ -172,7 +173,6 @@ public class SenderWifiManager implements SalutDataCallback {
             Log.d("Salut", "splited Raw data: " + raw);
             String[] splited = raw.split("\\|");
             editor.putString(splited[0], getTime());
-            //Log.d("Salut", "["+splited[2] + "][" + getMacAddr() + "]cp:" + getMacAddr().compareTo(splited[2]));
             if (splited[2].compareTo("all") == 0) {
                 Log.d("Salut", "prase Data: I recieved all from " + splited[0] + " when " + splited[3]);
             } else {
@@ -261,6 +261,7 @@ public class SenderWifiManager implements SalutDataCallback {
     public static String getTime() {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return simpleDateFormat.format(new Date());
+
     }
 
     public void endservice() {
