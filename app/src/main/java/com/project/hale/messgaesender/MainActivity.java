@@ -5,11 +5,14 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import com.peak.salut.Callbacks.SalutCallback;
 import com.peak.salut.Callbacks.SalutDataCallback;
@@ -28,14 +31,24 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity implements DeviceListFragment.OnFragmentInteractionListener, SalutDataCallback {
     Salut snetwork;
     DeviceListFragment dfra;
+    TextView wifistatus;
+    Handler wifistatusUpdateHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         dfra = (DeviceListFragment) getSupportFragmentManager().findFragmentById(R.id.frag_list);
+        wifistatus = (TextView) findViewById(R.id.my_wifi_detail);
         initSalut();
-        //  initwifi();
+        wifistatusUpdateHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                String status = msg.getData().getString("msg");
+                wifistatus.setText(status);
+            }
+        };
+        SenderWifiManager.getInstance().setStatus_handler(wifistatusUpdateHandler);
     }
 
     @Override

@@ -82,7 +82,7 @@ public class DeviceListFragment extends ListFragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.device_list, null);
         TextView myName = (TextView) view.findViewById(R.id.my_name);
-        TextView myDetail = (TextView) view.findViewById(R.id.my_detail);
+        TextView myDetail = (TextView) view.findViewById(R.id.my_wifi_detail);
         myName.setText("My Mac: " + SenderWifiManager.getMacAddr());
         myDetail.setText("Free");
         return view;

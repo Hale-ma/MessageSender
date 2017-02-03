@@ -54,6 +54,7 @@ public class ChatActivity extends AppCompatActivity {
 
             }
         };
+
         SenderWifiManager.getInstance().setMsg_handler(mUpdateHandler);
 
 
@@ -61,7 +62,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private void refreshmsglist() {
         if (mainDB.isOpen()) {
-            Cursor cursor = mainDB.rawQuery("SELECT * from msg where tar ='" + Macadd + "' or sor ='" + Macadd + "' order by time", null);
+            Cursor cursor = mainDB.rawQuery("SELECT * from msg where (tar ='" + Macadd + "' and sor ='"+SenderWifiManager.getMacAddr()+"') or (sor ='" + Macadd + "' and tar ='"+SenderWifiManager.getMacAddr()+"') order by time", null);
             while (cursor.moveToNext()) {
                 String tar = cursor.getString(cursor.getColumnIndex("tar"));
                 String sor = cursor.getString(cursor.getColumnIndex("sor"));
