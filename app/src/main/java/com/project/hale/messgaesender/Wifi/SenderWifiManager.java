@@ -44,11 +44,15 @@ public class SenderWifiManager implements SalutDataCallback {
     public boolean isInit = false;
     private boolean isDiscovering = false;
 
-    private Context context;
 
     private SalutServiceData cachedata = new SalutServiceData("loc|all|" + getTime(), 52391, "x");
     private WifiStatus nowstatus = WifiStatus.DEFAULT;
     private String cache_tar, cache_msg, cache_tar_ex, cache_msg_ex;
+
+    private int testcount = 0;
+    private Context context;
+    private Date sendtime;
+    private long avgdelay = 0;
 
 
     private Handler d_handler = new Handler();
@@ -300,6 +304,26 @@ public class SenderWifiManager implements SalutDataCallback {
                     }
                     if (splited[2].compareTo(getMacAddr()) == 0) {//i am the target!
                         Log.d("Salut", "prase Data: I recieved:" + splited[4] + "from " + splited[0] + " when " + splited[3]);
+                        String[] temp = splited[4].split("XX");
+                        int hc = Integer.valueOf(temp[0]);
+                        long delay = 0;
+                        if (hc > testcount) {
+                            if (sendtime != null) {
+                                Date now = new Date();
+                                delay = (now.getTime() - sendtime.getTime()) / 2000;
+                                if (avgdelay != 0) {
+                                    avgdelay = (avgdelay + delay) / 2;
+                                } else {
+                                    avgdelay = delay;
+                                }
+                            }
+                            sendtime = new Date();
+                            testcount = hc + 1;
+
+                            sendmsg(splited[0], testcount + "XX" + "Delay:" + delay + "s" + "average: " + avgdelay + "s", 0);
+                        }
+
+
                     } else {//i am not the target
                         Log.d("Salut", "prase Data: I need to route the messgae:" + splited[4] + "from " + splited[0] + " when " + splited[3]);
                         if (splited[1].compareTo(getMacAddr()) != 0) {// do not "route" the message from itself
