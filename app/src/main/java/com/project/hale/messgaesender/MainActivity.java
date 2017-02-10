@@ -1,12 +1,15 @@
 package com.project.hale.messgaesender;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -19,6 +22,7 @@ import com.peak.salut.Callbacks.SalutDataCallback;
 import com.peak.salut.Salut;
 import com.peak.salut.SalutDataReceiver;
 import com.peak.salut.SalutServiceData;
+import com.project.hale.messgaesender.Bluetooth.SenderBluetoothManager;
 import com.project.hale.messgaesender.Wifi.SenderDevice;
 import com.project.hale.messgaesender.Wifi.SenderWifiManager;
 
@@ -39,8 +43,10 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         dfra = (DeviceListFragment) getSupportFragmentManager().findFragmentById(R.id.frag_list);
+
+        //init wifi
         wifistatus = (TextView) findViewById(R.id.my_wifi_detail);
-        initSalut();
+       // initWifi();
         wifistatusUpdateHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
@@ -49,6 +55,13 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
             }
         };
         SenderWifiManager.getInstance().setStatus_handler(wifistatusUpdateHandler);
+
+        //init bluetooth
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            String permissions[] = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+            ActivityCompat.requestPermissions(MainActivity.this, permissions, 5230);
+        }
+        initBluetooth();
     }
 
     @Override
@@ -62,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
 
     }
 
-    private void initSalut() {
+    private void initWifi() {
         if (!SenderWifiManager.getInstance().isInit) {
             SalutDataReceiver dataReceiver = new SalutDataReceiver(this, SenderWifiManager.getInstance());
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
@@ -93,6 +106,12 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
         }
     }
 
+    private void initBluetooth(){
+        if(!SenderBluetoothManager.getInstance().isInit){
+            SenderBluetoothManager.getInstance().init(this);
+        }
+    }
+
 
     @Override
     public void onDataReceived(Object o) {
@@ -102,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     @Override
     protected void onDestroy() {
         Log.d("Salut", "Ending");
-        SenderWifiManager.getInstance().endservice();
+        //SenderWifiManager.getInstance().endservice();
         super.onDestroy();
     }
 
