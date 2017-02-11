@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/Android-BluetoothSPPLibrary/library/BluetoothSPPLibrary.iml" filepath="$PROJECT_DIR$/Android-BluetoothSPPLibrary/library/BluetoothSPPLibrary.iml" />
       <module fileurl="file://$PROJECT_DIR$/MessgaeSender.iml" filepath="$PROJECT_DIR$/MessgaeSender.iml" />
       <module fileurl="file://$PROJECT_DIR$/Salut/Salut.iml" filepath="$PROJECT_DIR$/Salut/Salut.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />

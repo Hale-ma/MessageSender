@@ -4,8 +4,6 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.project.hale.messgaesender.Wifi.SenderWifiManager;
-
 import app.akexorcist.bluetotohspp.library.BluetoothSPP;
 import app.akexorcist.bluetotohspp.library.BluetoothState;
 
@@ -19,6 +17,9 @@ public class SenderBluetoothManager {
     public static SenderBluetoothManager sInstance = new SenderBluetoothManager();
     public String[] paired_device;
     public boolean isInit = false;
+    public String connectedMAC = null;
+    public String btMAC;
+    private String cacheMAC, cachedata;
 
     private SenderBluetoothManager() {
 
@@ -30,6 +31,7 @@ public class SenderBluetoothManager {
 
     public void init(Context c) {
         this.context = c;
+        btMAC = getbtMAC();
         bluetoothSPP = new BluetoothSPP(context);
         if (!bluetoothSPP.isBluetoothEnabled()) {
             bluetoothSPP.enable();
@@ -47,11 +49,15 @@ public class SenderBluetoothManager {
         bluetoothSPP.setBluetoothConnectionListener(new BluetoothSPP.BluetoothConnectionListener() {
             public void onDeviceConnected(String name, String address) {
                 Log.d("bt", "onDeviceConnected:" + name + " " + address);
-                bluetoothSPP.send(("heiheiheihuhuhei"+name).getBytes(),false);
+                connectedMAC = address;
+                if (cacheMAC == connectedMAC) {
+                    bluetoothSPP.send(cachedata, true);
+                }
             }
 
             public void onDeviceDisconnected() {
                 Log.d("bt", "onDeviceDisconnected");
+                connectedMAC = null;
             }
 
             public void onDeviceConnectionFailed() {
@@ -60,19 +66,37 @@ public class SenderBluetoothManager {
         });
         bluetoothSPP.setOnDataReceivedListener(new datareceive());
 //
-        bluetoothSPP.connect("C0:C9:76:DA:53:B3");
+        //    bluetoothSPP.connect("C0:C9:76:DA:53:B3");
+        Log.d("bt", "mac:" + getbtMAC());
 
-
-        isInit=true;
+        isInit = true;
 
     }
+
+    public void send(String btMAC, String data) {
+        cacheMAC = btMAC;
+        cachedata = data;
+        if (connectedMAC == null) {
+            bluetoothSPP.connect(btMAC);
+        } else if (connectedMAC.compareTo(btMAC) != 0) {
+            bluetoothSPP.disconnect();
+            bluetoothSPP.connect(btMAC);
+        } else {
+            bluetoothSPP.send(data, true);
+        }
+    }
+
+    public String getbtMAC() {
+        return btMAC == null ? android.provider.Settings.Secure.getString(context.getContentResolver(), "bluetooth_address") : btMAC;
+    }
+
 
     private class datareceive implements BluetoothSPP.OnDataReceivedListener {
 
         @Override
         public void onDataReceived(byte[] data, String message) {
-            Toast.makeText(context,message+" "+data.length,Toast.LENGTH_LONG);
-            Log.d("bt", "onDataReceived:"+ message);
+            Toast.makeText(context, message + " " + data.length, Toast.LENGTH_LONG);
+            Log.d("bt", "onDataReceived:" + message);
         }
     }
 }

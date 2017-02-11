@@ -1,1 +1,2 @@
-include ':app', ':Salut'
+include ':app', ':Salut', ':BluetoothSPPLibrary'
+project(':BluetoothSPPLibrary').projectDir = new File('Android-BluetoothSPPLibrary/library')

@@ -10,7 +10,7 @@ import com.peak.salut.SalutDevice;
  */
 
 public class SenderDevice {
-    public String wifiAddress;
+    public String wifiAddress,btaddress;
     public int distance=0;
     public String time="";
 
