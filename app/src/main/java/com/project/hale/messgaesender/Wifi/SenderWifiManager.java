@@ -17,6 +17,7 @@ import com.peak.salut.Salut;
 import com.peak.salut.SalutDataReceiver;
 import com.peak.salut.SalutDevice;
 import com.peak.salut.SalutServiceData;
+import com.project.hale.messgaesender.Bluetooth.SenderBluetoothManager;
 import com.project.hale.messgaesender.DeviceListFragment;
 
 import java.net.NetworkInterface;
@@ -46,7 +47,7 @@ public class SenderWifiManager implements SalutDataCallback {
 
     private Context context;
 
-    private SalutServiceData cachedata = new SalutServiceData("loc|all|" + getTime(), 52391, "x");
+    private SalutServiceData cachedata = new SalutServiceData("loc|all|" + getTime(), 52391, "x", SenderBluetoothManager.getInstance().getbtMAC());
     private WifiStatus nowstatus = WifiStatus.DEFAULT;
     private String cache_tar, cache_msg, cache_tar_ex, cache_msg_ex;
 
@@ -152,12 +153,12 @@ public class SenderWifiManager implements SalutDataCallback {
             if (action == 0) {
                 cache_tar = getMacAddr() + "|" + tar + "|" + getTime();
                 cache_msg = msg;
-                sd = new SalutServiceData(cache_tar, 52391, cache_msg);
+                sd = new SalutServiceData(cache_tar, 52391, cache_msg, SenderBluetoothManager.getInstance().getbtMAC());
                 nowstatus = WifiStatus.OSEND;
             } else {
                 cache_tar = tar;
                 cache_msg = msg;
-                sd = new SalutServiceData(cache_tar, 52391, cache_msg);
+                sd = new SalutServiceData(cache_tar, 52391, cache_msg, SenderBluetoothManager.getInstance().getbtMAC());
                 nowstatus = WifiStatus.OFORD;
             }
         } else if (nowstatus == WifiStatus.OSEND) {
@@ -177,7 +178,7 @@ public class SenderWifiManager implements SalutDataCallback {
             }
         } else if (nowstatus == WifiStatus.OFORD) {
             if (action == 0) {
-                sd = new SalutServiceData(getMacAddr() + "|" + tar + "|" + getTime(), 52391, msg);
+                sd = new SalutServiceData(getMacAddr() + "|" + tar + "|" + getTime(), 52391, msg, SenderBluetoothManager.getInstance().getbtMAC());
                 sd.addextra(cache_tar, cache_msg);
                 cache_tar_ex = cache_tar;
                 cache_msg_ex = cache_msg;
@@ -193,7 +194,7 @@ public class SenderWifiManager implements SalutDataCallback {
             }
         } else if (nowstatus == WifiStatus.DSEND) {
             if (action == 0) {
-                sd = new SalutServiceData(cache_tar_ex, 52391, cache_msg_ex);
+                sd = new SalutServiceData(cache_tar_ex, 52391, cache_msg_ex, SenderBluetoothManager.getInstance().getbtMAC());
                 sd.addextra(getMacAddr() + "|" + tar + "|" + getTime(), msg);
                 cache_tar = cache_tar_ex;
                 cache_msg = cache_msg_ex;
@@ -201,7 +202,7 @@ public class SenderWifiManager implements SalutDataCallback {
                 cache_msg_ex = msg;
                 nowstatus = WifiStatus.DSEND;
             } else {
-                sd = new SalutServiceData(cache_tar_ex, 52391, cache_msg_ex);
+                sd = new SalutServiceData(cache_tar_ex, 52391, cache_msg_ex, SenderBluetoothManager.getInstance().getbtMAC());
                 sd.addextra(tar, msg);
                 cache_tar = cache_tar_ex;
                 cache_msg = cache_msg_ex;
@@ -213,11 +214,11 @@ public class SenderWifiManager implements SalutDataCallback {
             if (action == 0) {
                 cache_tar = getMacAddr() + "|" + tar + "|" + getTime();
                 cache_msg = msg;
-                sd = new SalutServiceData(cache_tar, 52391, cache_msg);
+                sd = new SalutServiceData(cache_tar, 52391, cache_msg, SenderBluetoothManager.getInstance().getbtMAC());
                 sd.addextra(cache_tar_ex, cache_msg_ex);
                 nowstatus = WifiStatus.DOUBLE;
             } else {
-                sd = new SalutServiceData(cache_tar_ex, 52391, cache_msg_ex);
+                sd = new SalutServiceData(cache_tar_ex, 52391, cache_msg_ex, SenderBluetoothManager.getInstance().getbtMAC());
                 sd.addextra(tar, msg);
                 cache_tar = cache_tar_ex;
                 cache_msg = cache_msg_ex;
@@ -227,7 +228,7 @@ public class SenderWifiManager implements SalutDataCallback {
             }
         } else {//DOUBLE
             if (action == 0) {
-                sd = new SalutServiceData(getMacAddr() + "|" + tar + "|" + getTime(), 52391, msg);
+                sd = new SalutServiceData(getMacAddr() + "|" + tar + "|" + getTime(), 52391, msg, SenderBluetoothManager.getInstance().getbtMAC());
                 cache_tar = getMacAddr() + "|" + tar + "|" + getTime();
                 cache_msg = msg;
                 sd.addextra(cache_tar_ex, cache_msg_ex);
@@ -284,8 +285,20 @@ public class SenderWifiManager implements SalutDataCallback {
         while (it.hasNext()) {
             String raw = it.next();
             Log.d("Salut", "splited Raw data: " + raw);
+            //load devices into content provider
             String[] splited = raw.split("\\|");
-            editor.putString(splited[0], getTime());
+//            if (splited[1].compareTo("XX")==0){
+//                editor.putString(splited[0],getTime()+"|0|"+"UNKNOW");
+//                snetwork.rawData = new ArrayList<String>();
+//                break;
+//            }
+
+            if (splited[2].compareTo("all") != 0) {
+                editor.putString(splited[1], getTime() + "|1|" + splited[0]);//if it is device it is not near by deivce,save the MAC for the nearest node
+            }
+            editor.putString(splited[0], getTime() + "|0|" + splited[5]);//if it is near by device, save Wi-Fi MAC & Bluetooth MAC & time
+
+
             if (splited[2].compareTo("all") == 0) {
                 Log.d("Salut", "prase Data: I recieved all from " + splited[0] + " when " + splited[3]);
             } else {
@@ -319,8 +332,9 @@ public class SenderWifiManager implements SalutDataCallback {
         Iterator<String> iter = usr.keySet().iterator();
         while (iter.hasNext()) {
             String mac = iter.next();
-            String time = (String) usr.get(mac);
-            deviceList.add(new SenderDevice(mac, 0, time));
+            String information = ((String) (usr.get(mac)));
+            Log.d("Salut", "new device:" + mac + " " + information);
+            deviceList.add(new SenderDevice(mac, information));
         }
         if (dfra != null) {
             dfra.updateUI();

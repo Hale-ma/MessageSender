@@ -175,7 +175,7 @@ public class DeviceListFragment extends ListFragment {
                     top.setText(device.toString()+" dis:"+device.distance);
                 }
                 if (bottom != null) {
-                    bottom.setText(device.time);
+                    bottom.setText(device.time.substring(4)+device.btaddress==null?("\nNEAREST:"+device.nearestaddress):("\nBLUETOOTH:"+device.btaddress));
                 }
                 //  Log.d("adapter", "WiFiPeerListAdapter : getView : " + device.toString());
             }

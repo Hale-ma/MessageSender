@@ -18,7 +18,7 @@ public class SenderBluetoothManager {
     public String[] paired_device;
     public boolean isInit = false;
     public String connectedMAC = null;
-    public String btMAC;
+    private String btMAC;
     private String cacheMAC, cachedata;
 
     private SenderBluetoothManager() {
@@ -31,7 +31,7 @@ public class SenderBluetoothManager {
 
     public void init(Context c) {
         this.context = c;
-        btMAC = getbtMAC();
+        btMAC = android.provider.Settings.Secure.getString(context.getContentResolver(), "bluetooth_address");
         bluetoothSPP = new BluetoothSPP(context);
         if (!bluetoothSPP.isBluetoothEnabled()) {
             bluetoothSPP.enable();
@@ -98,5 +98,9 @@ public class SenderBluetoothManager {
             Toast.makeText(context, message + " " + data.length, Toast.LENGTH_LONG);
             Log.d("bt", "onDataReceived:" + message);
         }
+    }
+
+    public void endbt(){
+        bluetoothSPP.stopService();
     }
 }

@@ -41,12 +41,20 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
+
+        //init bluetooth
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            String permissions[] = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+            ActivityCompat.requestPermissions(MainActivity.this, permissions, 5230);
+        }
+        initBluetooth();
         setContentView(R.layout.activity_main);
         dfra = (DeviceListFragment) getSupportFragmentManager().findFragmentById(R.id.frag_list);
-
         //init wifi
         wifistatus = (TextView) findViewById(R.id.my_wifi_detail);
-       // initWifi();
+       initWifi();
         wifistatusUpdateHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
@@ -56,12 +64,8 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
         };
         SenderWifiManager.getInstance().setStatus_handler(wifistatusUpdateHandler);
 
-        //init bluetooth
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            String permissions[] = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
-            ActivityCompat.requestPermissions(MainActivity.this, permissions, 5230);
-        }
-        initBluetooth();
+
+
     }
 
     @Override
@@ -80,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
             SalutDataReceiver dataReceiver = new SalutDataReceiver(this, SenderWifiManager.getInstance());
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
             String date = simpleDateFormat.format(new Date());
-            SalutServiceData sd = new SalutServiceData("loc|all|" + date, 52391, "x");
+            SalutServiceData sd = new SalutServiceData("loc|all|" + date, 52391, "x",SenderBluetoothManager.getInstance().getbtMAC());
             SalutCallback sc = new SalutCallback() {
                 @Override
                 public void call() {
@@ -94,8 +98,8 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
             Iterator<String> iter = usr.keySet().iterator();
             while (iter.hasNext()) {
                 String mac = iter.next();
-                String time = (String) usr.get(mac);
-                SenderWifiManager.getInstance().deviceList.add(new SenderDevice(mac, 0, time));
+                String information = (String) usr.get(mac);
+                SenderWifiManager.getInstance().deviceList.add(new SenderDevice(mac,information));
             }
             dfra.updateUI();
 //            SQLiteDatabase mainDB = SQLiteDatabase.openOrCreateDatabase(this.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
@@ -121,7 +125,8 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     @Override
     protected void onDestroy() {
         Log.d("Salut", "Ending");
-        //SenderWifiManager.getInstance().endservice();
+        SenderWifiManager.getInstance().endservice();
+        SenderBluetoothManager.getInstance().endbt();
         super.onDestroy();
     }
 
