@@ -51,6 +51,7 @@ public class SenderBluetoothManager {
                 Log.d("bt", "onDeviceConnected:" + name + " " + address);
                 connectedMAC = address;
                 if (cacheMAC == connectedMAC) {
+                    Log.d("bt", "connected, sending..");
                     bluetoothSPP.send(cachedata, true);
                 }
             }
@@ -77,14 +78,19 @@ public class SenderBluetoothManager {
         cacheMAC = btMAC;
         cachedata = data;
         if (connectedMAC == null) {
+            Log.d("bt", "sending, connecting");
             bluetoothSPP.connect(btMAC);
         } else if (connectedMAC.compareTo(btMAC) != 0) {
+            Log.d("bt", "sending, switch connection!");
             bluetoothSPP.disconnect();
             bluetoothSPP.connect(btMAC);
         } else {
+            Log.d("bt", "send directly");
             bluetoothSPP.send(data, true);
         }
     }
+
+
 
     public String getbtMAC() {
         return btMAC == null ? android.provider.Settings.Secure.getString(context.getContentResolver(), "bluetooth_address") : btMAC;

@@ -333,7 +333,6 @@ public class SenderWifiManager implements SalutDataCallback {
         while (iter.hasNext()) {
             String mac = iter.next();
             String information = ((String) (usr.get(mac)));
-            Log.d("Salut", "new device:" + mac + " " + information);
             deviceList.add(new SenderDevice(mac, information));
         }
         if (dfra != null) {

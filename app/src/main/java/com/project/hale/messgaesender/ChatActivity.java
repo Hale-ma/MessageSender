@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.project.hale.messgaesender.Bluetooth.SenderBluetoothManager;
 import com.project.hale.messgaesender.Wifi.SenderWifiManager;
 
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ import java.util.List;
 public class ChatActivity extends AppCompatActivity {
     EditText input_text;
     ListView msglist;
-    String Macadd;
+    String Macadd, btMac;
     List<Chatmsg> chatmsgList = new ArrayList<>();
     SQLiteDatabase mainDB;
     chatMsgAdapter chatMsgAdapter;
@@ -34,6 +35,7 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Macadd = this.getIntent().getExtras().getString("MAC");
+        btMac = this.getIntent().getExtras().getString("BTMAC");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
         input_text = (EditText) findViewById(R.id.edit_input);
@@ -62,7 +64,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private void refreshmsglist() {
         if (mainDB.isOpen()) {
-            Cursor cursor = mainDB.rawQuery("SELECT * from msg where (tar ='" + Macadd + "' and sor ='"+SenderWifiManager.getMacAddr()+"') or (sor ='" + Macadd + "' and tar ='"+SenderWifiManager.getMacAddr()+"') order by time", null);
+            Cursor cursor = mainDB.rawQuery("SELECT * from msg where (tar ='" + Macadd + "' and sor ='" + SenderWifiManager.getMacAddr() + "') or (sor ='" + Macadd + "' and tar ='" + SenderWifiManager.getMacAddr() + "') order by time", null);
             while (cursor.moveToNext()) {
                 String tar = cursor.getString(cursor.getColumnIndex("tar"));
                 String sor = cursor.getString(cursor.getColumnIndex("sor"));
@@ -90,6 +92,9 @@ public class ChatActivity extends AppCompatActivity {
                     } else {
                         input_text.setText("");
                         this.sendMessage_boradcast(newMsg);
+                        if (btMac.compareTo("UNKNOWN") != 0) {
+                            sendMessage_bt(newMsg);
+                        }
                         mainDB.execSQL("INSERT INTO msg('sor','tar','time','msg')values('" + SenderWifiManager.getMacAddr() + "','" + Macadd + "','" + SenderWifiManager.getTime() + "','" + newMsg + "')");
                         chatmsgList.add(new Chatmsg(SenderWifiManager.getMacAddr(), Macadd, SenderWifiManager.getTime(), newMsg));// make a temp message object to update the UI
                         chatMsgAdapter = new chatMsgAdapter(getApplicationContext(), R.id.msglist, chatmsgList);
@@ -105,6 +110,10 @@ public class ChatActivity extends AppCompatActivity {
 
         private void sendMessage_boradcast(String message) {
             SenderWifiManager.getInstance().sendmsg(Macadd, message);
+        }
+
+        private void sendMessage_bt(String message) {
+            SenderBluetoothManager.getInstance().send(btMac, message);
         }
     }
 

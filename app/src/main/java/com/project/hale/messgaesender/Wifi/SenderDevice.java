@@ -21,12 +21,13 @@ public class SenderDevice {
 //
 //    }
 
-//    public SenderDevice(String wifiAddress, String btaddress, int distance, String time) {
-//        this.wifiAddress = wifiAddress;
-//        this.distance = distance;
-//        this.time = time;
-//        this.btaddress = btaddress;
-//    }
+    public SenderDevice(String wifiAddress, String nearestaddress, int distance, String time) {
+        this.wifiAddress = wifiAddress;
+        this.distance = distance;
+        this.nearestaddress = nearestaddress;
+        this.time = time;
+        this.btaddress = "UNKNOW";
+    }
 
     public SenderDevice(String mac, String information) {
         this.wifiAddress = mac;
@@ -37,7 +38,7 @@ public class SenderDevice {
             this.btaddress = temp[2];
             this.nearestaddress = wifiAddress;
         } else {
-            this.btaddress = null;
+            this.btaddress = "UNKNOWN";
             this.nearestaddress = temp[2];
         }
     }

@@ -74,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
         Intent intent = new Intent(MainActivity.this, ChatActivity.class);
         Bundle bundle = new Bundle();
         bundle.putString("MAC", device.wifiAddress);
+        bundle.putString("BTMAC", device.btaddress);
         intent.putExtras(bundle);
         startActivity(intent);
 
