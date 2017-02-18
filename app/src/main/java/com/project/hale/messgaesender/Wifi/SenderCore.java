@@ -4,15 +4,13 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 
 import com.project.hale.messgaesender.Bluetooth.SenderBluetoothManager;
 
 import java.util.HashMap;
 
-/**
- * Created by mahon on 2017/2/16.
- */
 
 public class SenderCore {
     private static SQLiteDatabase mainDB;
@@ -74,6 +72,7 @@ public class SenderCore {
             mainDB.execSQL("INSERT INTO msg('sor','tar','time','msg')values('" + sorWiFi + "','" + tarWiFi + "','" + time + "','" + data + "')");
             if (tarWiFi.compareTo(SenderWifiManager.getInstance().getMacAddr()) == 0) {//i am the target!
                 Log.d("SenderCore", "prase Data: I recieved:" + data + "from " + sorWiFi + " when " + time);
+                msg_handler.handleMessage(new Message());
             } else {//i am not the target
                 Log.d("SenderCore", "prase Data: I need to route the messgae:" + data + "from " + sorWiFi + " when " + time);
                 if (sorWiFi.compareTo(SenderWifiManager.getInstance().getMacAddr()) != 0) {// do not "route" the message from itself

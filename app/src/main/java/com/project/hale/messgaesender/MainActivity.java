@@ -95,9 +95,7 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
             SharedPreferences preferences = getSharedPreferences("user-around", Context.MODE_PRIVATE);
             Map<String, ?> usr = preferences.getAll();
             SenderWifiManager.getInstance().deviceList = new ArrayList<>();
-            Iterator<String> iter = usr.keySet().iterator();
-            while (iter.hasNext()) {
-                String mac = iter.next();
+            for (String mac : usr.keySet()) {
                 String information = (String) usr.get(mac);
                 SenderDevice tempdevice = new SenderDevice(mac, information);
                 SenderWifiManager.getInstance().deviceList.add(tempdevice);

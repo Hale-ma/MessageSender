@@ -31,7 +31,7 @@ public class DeviceListFragment extends ListFragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-    public List<SenderDevice> slist=new ArrayList<SenderDevice>();
+    public List<SenderDevice> slist = new ArrayList<SenderDevice>();
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -120,11 +120,11 @@ public class DeviceListFragment extends ListFragment {
 
     public void updateUI() {
         this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, SenderWifiManager.getInstance().getDeviceList()));
-      //  this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, slist));
+        //  this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, slist));
         Log.d("updateUI", "updateUI");
     }
 
-    public void addDevice(SenderDevice s){
+    public void addDevice(SenderDevice s) {
         slist.add(s);
         this.updateUI();
     }
@@ -147,11 +147,6 @@ public class DeviceListFragment extends ListFragment {
 
         private List<SenderDevice> items;
 
-        /**
-         * @param context
-         * @param textViewResourceId
-         * @param objects
-         */
         public SenderDeviceListAdapter(Context context, int textViewResourceId,
                                        List<SenderDevice> objects) {
             super(context, textViewResourceId, objects);
@@ -172,10 +167,10 @@ public class DeviceListFragment extends ListFragment {
                 TextView top = (TextView) v.findViewById(R.id.device_name);
                 TextView bottom = (TextView) v.findViewById(R.id.device_details);
                 if (top != null) {
-                    top.setText(device.toString()+" dis:"+device.distance);
+                    top.setText(device.toString() + " dis:" + device.distance);
                 }
                 if (bottom != null) {
-                    bottom.setText(device.time+" "+device.btaddress==null?("\nNEAREST:"+device.nearestaddress):("\nBLUETOOTH:"+device.btaddress));
+                    bottom.setText(device.time + " " + ((device.btaddress.compareTo("UNKNOWN")==0) ? ("\nNEAREST:" + device.nearestaddress) : ("\nBLUETOOTH:" + device.btaddress)));
                 }
                 //  Log.d("adapter", "WiFiPeerListAdapter : getView : " + device.toString());
             }

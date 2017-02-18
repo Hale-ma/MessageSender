@@ -405,9 +405,7 @@ public class SenderWifiManager implements SalutDataCallback {
         mainDB.close();
     }
 
-//    public void setMsg_handler(Handler msg_handler) {
-//        this.msg_handler = msg_handler;
-//    }
+
 
     public void setStatus_handler(Handler status_handler) {
         this.status_handler = status_handler;

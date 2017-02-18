@@ -1,8 +1,5 @@
 package com.project.hale.messgaesender.Wifi;
 
-import android.os.Handler;
-import android.util.Log;
-
 /**
  * Created by mahon on 2016/11/13.
  */

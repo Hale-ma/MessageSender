@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,14 +16,11 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.project.hale.messgaesender.Bluetooth.SenderBluetoothManager;
 import com.project.hale.messgaesender.Wifi.SenderCore;
 import com.project.hale.messgaesender.Wifi.SenderWifiManager;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.crypto.Mac;
 
 public class ChatActivity extends AppCompatActivity {
     EditText input_text;

@@ -19,12 +19,12 @@ import app.akexorcist.bluetotohspp.library.BluetoothState;
 public class SenderBluetoothManager {
     private Context context;
     private BluetoothSPP bluetoothSPP;
-    public static SenderBluetoothManager sInstance = new SenderBluetoothManager();
-    public String[] paired_device;
+    private static SenderBluetoothManager sInstance = new SenderBluetoothManager();
+    private String[] paired_device;
     public boolean isInit = false;
-    public String connectedMAC = null;
+    private String connectedMAC = null;
     private String tarBT;
-    private String cacheMAC;
+    private String cacheMAC="";
     private JSONObject cachedata;
 
     private SenderBluetoothManager() {
@@ -50,15 +50,12 @@ public class SenderBluetoothManager {
         bluetoothSPP.startService(BluetoothState.DEVICE_ANDROID);
         paired_device = bluetoothSPP.getPairedDeviceAddress();
         SenderCore.paired_device=paired_device;
-        for (int i = 0; i < paired_device.length; i++) {
-            Log.d("bt", paired_device[i]);
-        }
         bluetoothSPP.setBluetoothConnectionListener(new BluetoothSPP.BluetoothConnectionListener() {
             public void onDeviceConnected(String name, String address) {
                 Log.d("bt", "onDeviceConnected:" + name + " " + address);
                 connectedMAC = address;
-                if (cacheMAC == connectedMAC) {
-                    Log.d("bt", "connected, sending..");
+                if (cacheMAC.compareTo(connectedMAC)==0) {
+                    Log.d("bt", "connected, sending.."); 
                     bluetoothSPP.send(cachedata.toString(), true);
                 }
             }
@@ -73,8 +70,6 @@ public class SenderBluetoothManager {
             }
         });
         bluetoothSPP.setOnDataReceivedListener(new datareceive());
-//
-        //    bluetoothSPP.connect("C0:C9:76:DA:53:B3");
         Log.d("bt", "mac:" +  getbtMAC());
 
         isInit = true;
