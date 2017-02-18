@@ -4,12 +4,17 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.project.hale.messgaesender.Wifi.SenderCore;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import app.akexorcist.bluetotohspp.library.BluetoothSPP;
 import app.akexorcist.bluetotohspp.library.BluetoothState;
 
-/**
- * Created by mahon on 2017/2/9.
- */
 
 public class SenderBluetoothManager {
     private Context context;
@@ -18,8 +23,9 @@ public class SenderBluetoothManager {
     public String[] paired_device;
     public boolean isInit = false;
     public String connectedMAC = null;
-    private String btMAC;
-    private String cacheMAC, cachedata;
+    private String tarBT;
+    private String cacheMAC;
+    private JSONObject cachedata;
 
     private SenderBluetoothManager() {
 
@@ -31,7 +37,7 @@ public class SenderBluetoothManager {
 
     public void init(Context c) {
         this.context = c;
-        btMAC = android.provider.Settings.Secure.getString(context.getContentResolver(), "bluetooth_address");
+        tarBT = android.provider.Settings.Secure.getString(context.getContentResolver(), "bluetooth_address");
         bluetoothSPP = new BluetoothSPP(context);
         if (!bluetoothSPP.isBluetoothEnabled()) {
             bluetoothSPP.enable();
@@ -43,6 +49,7 @@ public class SenderBluetoothManager {
         bluetoothSPP.setupService();
         bluetoothSPP.startService(BluetoothState.DEVICE_ANDROID);
         paired_device = bluetoothSPP.getPairedDeviceAddress();
+        SenderCore.paired_device=paired_device;
         for (int i = 0; i < paired_device.length; i++) {
             Log.d("bt", paired_device[i]);
         }
@@ -52,7 +59,7 @@ public class SenderBluetoothManager {
                 connectedMAC = address;
                 if (cacheMAC == connectedMAC) {
                     Log.d("bt", "connected, sending..");
-                    bluetoothSPP.send(cachedata, true);
+                    bluetoothSPP.send(cachedata.toString(), true);
                 }
             }
 
@@ -68,32 +75,44 @@ public class SenderBluetoothManager {
         bluetoothSPP.setOnDataReceivedListener(new datareceive());
 //
         //    bluetoothSPP.connect("C0:C9:76:DA:53:B3");
-        Log.d("bt", "mac:" + getbtMAC());
+        Log.d("bt", "mac:" +  getbtMAC());
 
         isInit = true;
 
     }
 
-    public void send(String btMAC, String data) {
-        cacheMAC = btMAC;
-        cachedata = data;
+    public void send(String tarBT,String sorWiFi,String tarWiFi,String data) {
+        cacheMAC = tarBT;
+        cachedata = craftmessage(sorWiFi,tarWiFi,data);
         if (connectedMAC == null) {
             Log.d("bt", "sending, connecting");
-            bluetoothSPP.connect(btMAC);
-        } else if (connectedMAC.compareTo(btMAC) != 0) {
+            bluetoothSPP.connect(tarBT);
+        } else if (connectedMAC.compareTo(tarBT) != 0) {
             Log.d("bt", "sending, switch connection!");
             bluetoothSPP.disconnect();
-            bluetoothSPP.connect(btMAC);
+            bluetoothSPP.connect(tarBT);
         } else {
             Log.d("bt", "send directly");
-            bluetoothSPP.send(data, true);
+            bluetoothSPP.send(cachedata.toString(), true);
         }
     }
 
+    private JSONObject craftmessage(String sor, String tar, String data) {
+        JSONObject jo = new JSONObject();
+        try {
+            jo.put("sor", sor);
+            jo.put("tar", tar);
+            jo.put("time",new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+            jo.put("data",data);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return jo;
+    }
 
 
     public String getbtMAC() {
-        return btMAC == null ? android.provider.Settings.Secure.getString(context.getContentResolver(), "bluetooth_address") : btMAC;
+        return tarBT == null ? android.provider.Settings.Secure.getString(context.getContentResolver(), "bluetooth_address") : tarBT;
     }
 
 
@@ -103,10 +122,16 @@ public class SenderBluetoothManager {
         public void onDataReceived(byte[] data, String message) {
             Toast.makeText(context, message + " " + data.length, Toast.LENGTH_LONG);
             Log.d("bt", "onDataReceived:" + message);
+            try {
+                JSONObject jo=new JSONObject(message);
+                SenderCore.onReceive(jo.getString("sor"),jo.getString("tar"),jo.getString("time"),jo.getString("data"));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    public void endbt(){
+    public void endbt() {
         bluetoothSPP.stopService();
     }
 }

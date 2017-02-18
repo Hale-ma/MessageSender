@@ -53,7 +53,7 @@ public class SenderWifiManager implements SalutDataCallback {
 
 
     private Handler d_handler = new Handler();
-    private Handler msg_handler, status_handler;
+    private Handler status_handler;
 
     private int SELF_CHECK_INTERVAL = 20000;
     private int WIFI_ENABLE_INTERVAL = 3000;
@@ -294,9 +294,9 @@ public class SenderWifiManager implements SalutDataCallback {
 //            }
 
             if (splited[2].compareTo("all") != 0) {
-                editor.putString(splited[1], getTime() + "|1|" + splited[0]);//if it is device it is not near by deivce,save the MAC for the nearest node
+                editor.putString(splited[1], getTime() + "|-1|" + splited[0]);//if it is device it is not near by deivce,save the MAC for the nearest node
             }
-            editor.putString(splited[0], getTime() + "|0|" + splited[5]);//if it is near by device, save Wi-Fi MAC & Bluetooth MAC & time
+            editor.putString(splited[0], getTime() + "|1|" + splited[5]);//if it is near by device, save Wi-Fi MAC & Bluetooth MAC & time
 
 
             if (splited[2].compareTo("all") == 0) {
@@ -307,18 +307,20 @@ public class SenderWifiManager implements SalutDataCallback {
                     Log.d("db", "duplicate" + splited[4]);
                 } else {
                     //add the messge into database
-                    mainDB.execSQL("INSERT INTO msg('sor','tar','time','msg')values('" + splited[1] + "','" + splited[2] + "','" + splited[3] + "','" + splited[4] + "')");
-                    if (msg_handler != null) {
-                        msg_handler.handleMessage(new Message());
-                    }
-                    if (splited[2].compareTo(getMacAddr()) == 0) {//i am the target!
-                        Log.d("Salut", "prase Data: I recieved:" + splited[4] + "from " + splited[0] + " when " + splited[3]);
-                    } else {//i am not the target
-                        Log.d("Salut", "prase Data: I need to route the messgae:" + splited[4] + "from " + splited[0] + " when " + splited[3]);
-                        if (splited[1].compareTo(getMacAddr()) != 0) {// do not "route" the message from itself
-                            sendmsg(splited[1] + "|" + splited[2] + "|" + splited[3], splited[4], 1);
-                        }
-                    }
+//                    mainDB.execSQL("INSERT INTO msg('sor','tar','time','msg')values('" + splited[1] + "','" + splited[2] + "','" + splited[3] + "','" + splited[4] + "')");
+//                    if (msg_handler != null) {
+//                        msg_handler.handleMessage(new Message());
+//                    }
+//                    if (splited[2].compareTo(getMacAddr()) == 0) {//i am the target!
+//                        Log.d("Salut", "prase Data: I recieved:" + splited[4] + "from " + splited[0] + " when " + splited[3]);
+//                    } else {//i am not the target
+//                        Log.d("Salut", "prase Data: I need to route the messgae:" + splited[4] + "from " + splited[0] + " when " + splited[3]);
+//                        if (splited[1].compareTo(getMacAddr()) != 0) {// do not "route" the message from itself
+//                            sendmsg(splited[1] + "|" + splited[2] + "|" + splited[3], splited[4], 1);
+//                        }
+//                    }
+                    SenderCore.onReceive(splited[1], splited[2], splited[3], splited[4]);
+
                 }
             }
 
@@ -333,7 +335,10 @@ public class SenderWifiManager implements SalutDataCallback {
         while (iter.hasNext()) {
             String mac = iter.next();
             String information = ((String) (usr.get(mac)));
-            deviceList.add(new SenderDevice(mac, information));
+            SenderDevice tempdevice = new SenderDevice(mac, information);
+            deviceList.add(tempdevice);
+            Log.d("Salut",tempdevice+" "+tempdevice.btaddress);
+            SenderCore.wbMap.put(mac, tempdevice);
         }
         if (dfra != null) {
             dfra.updateUI();
@@ -400,9 +405,9 @@ public class SenderWifiManager implements SalutDataCallback {
         mainDB.close();
     }
 
-    public void setMsg_handler(Handler msg_handler) {
-        this.msg_handler = msg_handler;
-    }
+//    public void setMsg_handler(Handler msg_handler) {
+//        this.msg_handler = msg_handler;
+//    }
 
     public void setStatus_handler(Handler status_handler) {
         this.status_handler = status_handler;

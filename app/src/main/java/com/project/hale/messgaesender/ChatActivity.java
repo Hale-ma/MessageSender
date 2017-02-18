@@ -18,10 +18,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.project.hale.messgaesender.Bluetooth.SenderBluetoothManager;
+import com.project.hale.messgaesender.Wifi.SenderCore;
 import com.project.hale.messgaesender.Wifi.SenderWifiManager;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.crypto.Mac;
 
 public class ChatActivity extends AppCompatActivity {
     EditText input_text;
@@ -57,7 +60,7 @@ public class ChatActivity extends AppCompatActivity {
             }
         };
 
-        SenderWifiManager.getInstance().setMsg_handler(mUpdateHandler);
+        SenderCore.setMsg_handler(mUpdateHandler);
 
 
     }
@@ -91,10 +94,11 @@ public class ChatActivity extends AppCompatActivity {
                         input_text.setError("Can not send empty message!");
                     } else {
                         input_text.setText("");
-                        this.sendMessage_boradcast(newMsg);
-                        if (btMac.compareTo("UNKNOWN") != 0) {
-                            sendMessage_bt(newMsg);
-                        }
+                        SenderCore.send(SenderWifiManager.getMacAddr(), Macadd, newMsg);
+//                        this.sendMessage_boradcast(newMsg);
+//                        if (btMac.compareTo("UNKNOWN") != 0) {
+//                            sendMessage_bt(newMsg);
+//                        }
                         mainDB.execSQL("INSERT INTO msg('sor','tar','time','msg')values('" + SenderWifiManager.getMacAddr() + "','" + Macadd + "','" + SenderWifiManager.getTime() + "','" + newMsg + "')");
                         chatmsgList.add(new Chatmsg(SenderWifiManager.getMacAddr(), Macadd, SenderWifiManager.getTime(), newMsg));// make a temp message object to update the UI
                         chatMsgAdapter = new chatMsgAdapter(getApplicationContext(), R.id.msglist, chatmsgList);
@@ -108,13 +112,13 @@ public class ChatActivity extends AppCompatActivity {
             return false;
         }
 
-        private void sendMessage_boradcast(String message) {
-            SenderWifiManager.getInstance().sendmsg(Macadd, message);
-        }
-
-        private void sendMessage_bt(String message) {
-            SenderBluetoothManager.getInstance().send(btMac, message);
-        }
+//        private void sendMessage_boradcast(String message) {
+//            SenderWifiManager.getInstance().sendmsg(Macadd, message);
+//        }
+//
+//        private void sendMessage_bt(String message) {
+//            SenderBluetoothManager.getInstance().send(btMac, SenderWifiManager.getMacAddr(), Macadd, message);
+//        }
     }
 
     private class Chatmsg {

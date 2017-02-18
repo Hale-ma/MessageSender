@@ -1,5 +1,6 @@
 package com.project.hale.messgaesender.Wifi;
 
+import android.os.Handler;
 import android.util.Log;
 
 /**
@@ -11,22 +12,12 @@ public class SenderDevice {
     public int distance = 0;
     public String time = "";
 
-//    public SenderDevice(String wifiAddress) {
-//            this.wifiAddress = wifiAddress;
-//            this.distance = 0;
-//        }
-//
-//        public SenderDevice(String wifiAddress, int distance, String time) {
-//            this(wifiAddress, null, distance, time);
-//
-//    }
-
     public SenderDevice(String wifiAddress, String nearestaddress, int distance, String time) {
         this.wifiAddress = wifiAddress;
         this.distance = distance;
         this.nearestaddress = nearestaddress;
         this.time = time;
-        this.btaddress = "UNKNOW";
+        this.btaddress = "UNKNOWN";
     }
 
     public SenderDevice(String mac, String information) {
@@ -34,7 +25,7 @@ public class SenderDevice {
         String[] temp = information.split("\\|");
         this.time = temp[0];
         this.distance = Integer.parseInt(temp[1]);
-        if (distance == 0) {
+        if (distance == 1) {
             this.btaddress = temp[2];
             this.nearestaddress = wifiAddress;
         } else {
@@ -47,5 +38,6 @@ public class SenderDevice {
     public String toString() {
         return wifiAddress;
     }
+
 
 }

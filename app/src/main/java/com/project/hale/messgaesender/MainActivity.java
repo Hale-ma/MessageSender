@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -23,6 +22,7 @@ import com.peak.salut.Salut;
 import com.peak.salut.SalutDataReceiver;
 import com.peak.salut.SalutServiceData;
 import com.project.hale.messgaesender.Bluetooth.SenderBluetoothManager;
+import com.project.hale.messgaesender.Wifi.SenderCore;
 import com.project.hale.messgaesender.Wifi.SenderDevice;
 import com.project.hale.messgaesender.Wifi.SenderWifiManager;
 
@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        SenderCore.init(this);
 
 
         //init bluetooth
@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
         dfra = (DeviceListFragment) getSupportFragmentManager().findFragmentById(R.id.frag_list);
         //init wifi
         wifistatus = (TextView) findViewById(R.id.my_wifi_detail);
-       initWifi();
+        initWifi();
         wifistatusUpdateHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
@@ -63,7 +63,6 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
             }
         };
         SenderWifiManager.getInstance().setStatus_handler(wifistatusUpdateHandler);
-
 
 
     }
@@ -85,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
             SalutDataReceiver dataReceiver = new SalutDataReceiver(this, SenderWifiManager.getInstance());
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
             String date = simpleDateFormat.format(new Date());
-            SalutServiceData sd = new SalutServiceData("loc|all|" + date, 52391, "x",SenderBluetoothManager.getInstance().getbtMAC());
+            SalutServiceData sd = new SalutServiceData("loc|all|" + date, 52391, "x", SenderBluetoothManager.getInstance().getbtMAC());
             SalutCallback sc = new SalutCallback() {
                 @Override
                 public void call() {
@@ -95,12 +94,14 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
             snetwork = new Salut(dataReceiver, sd, sc);
             SharedPreferences preferences = getSharedPreferences("user-around", Context.MODE_PRIVATE);
             Map<String, ?> usr = preferences.getAll();
-            SenderWifiManager.getInstance().deviceList = new ArrayList<SenderDevice>();
+            SenderWifiManager.getInstance().deviceList = new ArrayList<>();
             Iterator<String> iter = usr.keySet().iterator();
             while (iter.hasNext()) {
                 String mac = iter.next();
                 String information = (String) usr.get(mac);
-                SenderWifiManager.getInstance().deviceList.add(new SenderDevice(mac,information));
+                SenderDevice tempdevice = new SenderDevice(mac, information);
+                SenderWifiManager.getInstance().deviceList.add(tempdevice);
+                SenderCore.wbMap.put(mac, tempdevice);
             }
             dfra.updateUI();
 //            SQLiteDatabase mainDB = SQLiteDatabase.openOrCreateDatabase(this.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
@@ -111,8 +112,8 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
         }
     }
 
-    private void initBluetooth(){
-        if(!SenderBluetoothManager.getInstance().isInit){
+    private void initBluetooth() {
+        if (!SenderBluetoothManager.getInstance().isInit) {
             SenderBluetoothManager.getInstance().init(this);
         }
     }
@@ -128,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
         Log.d("Salut", "Ending");
         SenderWifiManager.getInstance().endservice();
         SenderBluetoothManager.getInstance().endbt();
+        SenderCore.stop();
         super.onDestroy();
     }
 
