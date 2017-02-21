@@ -2,7 +2,6 @@ package com.project.hale.messgaesender.Wifi;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
@@ -27,7 +26,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+
+import static com.project.hale.messgaesender.Wifi.SenderCore.finishDeviceUpdate;
+import static com.project.hale.messgaesender.Wifi.SenderCore.startupdateDeviceInformation;
 
 /**
  * Created by mahon on 2016/12/20.
@@ -36,9 +37,7 @@ import java.util.Map;
 public class SenderWifiManager implements SalutDataCallback {
     private static SenderWifiManager sInstance = new SenderWifiManager();
     public Salut snetwork;
-    public List<SenderDevice> deviceList = new ArrayList<>();
     private SalutDataReceiver sdr;
-    DeviceListFragment dfra = null;
     public static String MacAddr;
     private SQLiteDatabase mainDB;
     private SharedPreferences preferences;
@@ -67,10 +66,9 @@ public class SenderWifiManager implements SalutDataCallback {
         return sInstance;
     }
 
-    public void init(SalutDataReceiver sdr, Salut s, DeviceListFragment dlf, Context context, SharedPreferences preferences) {
+    public void init(SalutDataReceiver sdr, Salut s, Context context, SharedPreferences preferences) {
         this.sdr = sdr;
         this.snetwork = s;
-        this.dfra = dlf;
         this.mainDB = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
         this.context = context;
         this.preferences = preferences;
@@ -275,76 +273,28 @@ public class SenderWifiManager implements SalutDataCallback {
         Log.d("Salut - on DataReceived", o.toString());
     }
 
-    public List<SenderDevice> getDeviceList() {
-        return deviceList;
-    }
 
     private void praseData() {
-        SharedPreferences.Editor editor = preferences.edit();
+        startupdateDeviceInformation();
         Iterator<String> it = snetwork.rawData.iterator();
         while (it.hasNext()) {
             String raw = it.next();
             Log.d("Salut", "splited Raw data: " + raw);
             //load devices into content provider
             String[] splited = raw.split("\\|");
-//            if (splited[1].compareTo("XX")==0){
-//                editor.putString(splited[0],getTime()+"|0|"+"UNKNOW");
-//                snetwork.rawData = new ArrayList<String>();
-//                break;
-//            }
-
+            SenderCore.updateDeviceInformation(splited[0], splited[5], 1, splited[0]);
             if (splited[2].compareTo("all") != 0) {
-                editor.putString(splited[1], getTime() + "|-1|" + splited[0]);//if it is device it is not near by deivce,save the MAC for the nearest node
+                SenderCore.updateDeviceInformation(splited[1], "UNKNOWN", 2, splited[0]);
             }
-            editor.putString(splited[0], getTime() + "|1|" + splited[5]);//if it is near by device, save Wi-Fi MAC & Bluetooth MAC & time
-
 
             if (splited[2].compareTo("all") == 0) {
                 Log.d("Salut", "prase Data: I recieved all from " + splited[0] + " when " + splited[3]);
             } else {
-                Cursor c = mainDB.rawQuery("SELECT * FROM msg WHERE sor='" + splited[1] + "' and tar='" + splited[2] + "' and time='" + splited[3] + "' and msg ='" + splited[4] + "'", null);
-                if (c.getCount() != 0) {
-                    Log.d("db", "duplicate" + splited[4]);
-                } else {
-                    //add the messge into database
-//                    mainDB.execSQL("INSERT INTO msg('sor','tar','time','msg')values('" + splited[1] + "','" + splited[2] + "','" + splited[3] + "','" + splited[4] + "')");
-//                    if (msg_handler != null) {
-//                        msg_handler.handleMessage(new Message());
-//                    }
-//                    if (splited[2].compareTo(getMacAddr()) == 0) {//i am the target!
-//                        Log.d("Salut", "prase Data: I recieved:" + splited[4] + "from " + splited[0] + " when " + splited[3]);
-//                    } else {//i am not the target
-//                        Log.d("Salut", "prase Data: I need to route the messgae:" + splited[4] + "from " + splited[0] + " when " + splited[3]);
-//                        if (splited[1].compareTo(getMacAddr()) != 0) {// do not "route" the message from itself
-//                            sendmsg(splited[1] + "|" + splited[2] + "|" + splited[3], splited[4], 1);
-//                        }
-//                    }
-                    SenderCore.onReceive(splited[1], splited[2], splited[3], splited[4]);
-
-                }
+                SenderCore.onReceive(splited[1], splited[2], splited[3], splited[4]);
             }
-
             snetwork.rawData = new ArrayList<String>();
         }
-        editor.commit();
-
-
-        Map<String, ?> usr = preferences.getAll();
-        deviceList = new ArrayList<SenderDevice>();
-        Iterator<String> iter = usr.keySet().iterator();
-        while (iter.hasNext()) {
-            String mac = iter.next();
-            String information = ((String) (usr.get(mac)));
-            SenderDevice tempdevice = new SenderDevice(mac, information);
-            deviceList.add(tempdevice);
-            Log.d("Salut",tempdevice+" "+tempdevice.btaddress);
-            SenderCore.wbMap.put(mac, tempdevice);
-        }
-        if (dfra != null) {
-            dfra.updateUI();
-        }
-
-
+        finishDeviceUpdate();
     }
 
     @NonNull
@@ -404,7 +354,6 @@ public class SenderWifiManager implements SalutDataCallback {
         snetwork.stopNetworkService(false);
         mainDB.close();
     }
-
 
 
     public void setStatus_handler(Handler status_handler) {

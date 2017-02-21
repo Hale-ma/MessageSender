@@ -12,6 +12,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.project.hale.messgaesender.Wifi.SenderCore;
 import com.project.hale.messgaesender.Wifi.SenderDevice;
 import com.project.hale.messgaesender.Wifi.SenderWifiManager;
 
@@ -65,7 +66,7 @@ public class DeviceListFragment extends ListFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         // set list adapter with row layout to adapter data
-        this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, SenderWifiManager.getInstance().getDeviceList()));
+        this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, SenderCore.getDeviceList()));
     }
 
     @Override
@@ -119,7 +120,7 @@ public class DeviceListFragment extends ListFragment {
     }
 
     public void updateUI() {
-        this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, SenderWifiManager.getInstance().getDeviceList()));
+        this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, SenderCore.getDeviceList()));
         //  this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, slist));
         Log.d("updateUI", "updateUI");
     }

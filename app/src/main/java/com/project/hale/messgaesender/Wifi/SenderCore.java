@@ -1,6 +1,7 @@
 package com.project.hale.messgaesender.Wifi;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Handler;
@@ -8,8 +9,15 @@ import android.os.Message;
 import android.util.Log;
 
 import com.project.hale.messgaesender.Bluetooth.SenderBluetoothManager;
+import com.project.hale.messgaesender.DeviceListFragment;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 
 public class SenderCore {
@@ -18,16 +26,22 @@ public class SenderCore {
     public static String[] paired_device;
     public static HashMap<String, SenderDevice> wbMap = new HashMap<>();
     private static Handler msg_handler;
-
-    public static void init(Context context) {
+    private static SharedPreferences preferences;
+    private static SharedPreferences.Editor editor;
+    public static DeviceListFragment dlf;
+    public static List<SenderDevice> deviceList = new ArrayList<>();//the list just for GUI display
+    public static void init(Context context, SharedPreferences sharedPreferences, DeviceListFragment dlf) {
         mainDB = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
         mainDB.execSQL("CREATE TABLE IF NOT EXISTS msg(sor char(64),tar char(64),time char(64),msg char(255))");
+        SenderCore.preferences = sharedPreferences;
+        loadPerference();
+        SenderCore.dlf=dlf;
     }
 
 
     /**
      * In this application, wifi MAC is the unique identifier
-     *
+     * @param sorWiFi
      * @param tarWiFi
      * @param data
      */
@@ -94,5 +108,67 @@ public class SenderCore {
     public static void setMsg_handler(Handler msg_handler) {
         SenderCore.msg_handler = msg_handler;
     }
+
+    public static void startupdateDeviceInformation() {
+        editor = preferences.edit();
+    }
+
+    public static void finishDeviceUpdate() {
+        editor.commit();
+        refeshDeviceList();
+
+    }
+
+    public static void updateDeviceInformation(String wifiAddress, String btAddress, int distance, String from) {
+        if (!wbMap.containsKey(wifiAddress)) {
+            SenderDevice sd = new SenderDevice(wifiAddress, from, btAddress, distance, getTime());
+            wbMap.put(wifiAddress, sd);
+            editor.putString(wifiAddress, sd.getdetail());
+            //new 一个加进去
+        } else {
+            SenderDevice sd = wbMap.get(wifiAddress);
+            if (sd.distance > distance) {
+                SenderDevice sdn = new SenderDevice(wifiAddress, from, btAddress, distance, getTime());
+                wbMap.put(wifiAddress, sdn);
+                editor.putString(wifiAddress,sdn.getdetail());
+            }
+
+        }
+    }
+
+    private static void refeshDeviceList(){
+        deviceList=new ArrayList<>();
+        for (SenderDevice senderDevice : wbMap.values()) {
+            deviceList.add(senderDevice);
+        }
+        if (dlf != null) {
+            dlf.updateUI();
+        }
+    }
+
+    private static void loadPerference() {
+        Map<String, ?> usr = preferences.getAll();
+        deviceList = new ArrayList<SenderDevice>();
+        Iterator<String> iter = usr.keySet().iterator();
+        while (iter.hasNext()) {
+            String mac = iter.next();
+            String information = ((String) (usr.get(mac)));
+            SenderDevice tempdevice = new SenderDevice(mac, information);
+            deviceList.add(tempdevice);
+            SenderCore.wbMap.put(mac, tempdevice);
+        }
+    }
+
+
+    public static String getTime() {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        return simpleDateFormat.format(new Date());
+
+    }
+
+    public static List<SenderDevice> getDeviceList() {
+        return deviceList;
+    }
+
 
 }

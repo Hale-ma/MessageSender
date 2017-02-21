@@ -37,11 +37,12 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     DeviceListFragment dfra;
     TextView wifistatus;
     Handler wifistatusUpdateHandler;
-
+    SharedPreferences preferences ;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        SenderCore.init(this);
+        preferences = getSharedPreferences("user-around", Context.MODE_PRIVATE);
+        SenderCore.init(this,preferences,dfra);
 
 
         //init bluetooth
@@ -92,18 +93,18 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
                 }
             };
             snetwork = new Salut(dataReceiver, sd, sc);
-            SharedPreferences preferences = getSharedPreferences("user-around", Context.MODE_PRIVATE);
-            Map<String, ?> usr = preferences.getAll();
-            SenderWifiManager.getInstance().deviceList = new ArrayList<>();
-            for (String mac : usr.keySet()) {
-                String information = (String) usr.get(mac);
-                SenderDevice tempdevice = new SenderDevice(mac, information);
-                SenderWifiManager.getInstance().deviceList.add(tempdevice);
-                SenderCore.wbMap.put(mac, tempdevice);
-            }
-            dfra.updateUI();
+            SharedPreferences preferences = getSharedPreferences("SenderSettings", Context.MODE_PRIVATE);
+//            Map<String, ?> usr = preferences.getAll();
+//            SenderWifiManager.getInstance().deviceList = new ArrayList<>();
+//            for (String mac : usr.keySet()) {
+//                String information = (String) usr.get(mac);
+//                SenderDevice tempdevice = new SenderDevice(mac, information);
+//                SenderWifiManager.getInstance().deviceList.add(tempdevice);
+//                SenderCore.wbMap.put(mac, tempdevice);
+//            }
+//            dfra.updateUI();
 //            SQLiteDatabase mainDB = SQLiteDatabase.openOrCreateDatabase(this.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
-            SenderWifiManager.getInstance().init(dataReceiver, snetwork, dfra, this, preferences);
+            SenderWifiManager.getInstance().init(dataReceiver, snetwork,  this, preferences);
             SenderWifiManager.getInstance().isInit = true;
         } else {
             Log.d("Salut", "no need to init");

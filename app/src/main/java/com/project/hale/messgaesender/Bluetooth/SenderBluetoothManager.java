@@ -5,12 +5,16 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.project.hale.messgaesender.Wifi.SenderCore;
+import com.project.hale.messgaesender.Wifi.SenderDevice;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.Map;
 
 import app.akexorcist.bluetotohspp.library.BluetoothSPP;
 import app.akexorcist.bluetotohspp.library.BluetoothState;
@@ -24,7 +28,7 @@ public class SenderBluetoothManager {
     public boolean isInit = false;
     private String connectedMAC = null;
     private String tarBT;
-    private String cacheMAC="";
+    private String cacheMAC = "";
     private JSONObject cachedata;
 
     private SenderBluetoothManager() {
@@ -49,13 +53,13 @@ public class SenderBluetoothManager {
         bluetoothSPP.setupService();
         bluetoothSPP.startService(BluetoothState.DEVICE_ANDROID);
         paired_device = bluetoothSPP.getPairedDeviceAddress();
-        SenderCore.paired_device=paired_device;
+        SenderCore.paired_device = paired_device;
         bluetoothSPP.setBluetoothConnectionListener(new BluetoothSPP.BluetoothConnectionListener() {
             public void onDeviceConnected(String name, String address) {
                 Log.d("bt", "onDeviceConnected:" + name + " " + address);
                 connectedMAC = address;
-                if (cacheMAC.compareTo(connectedMAC)==0) {
-                    Log.d("bt", "connected, sending.."); 
+                if (cacheMAC.compareTo(connectedMAC) == 0) {
+                    Log.d("bt", "connected, sending..");
                     bluetoothSPP.send(cachedata.toString(), true);
                 }
             }
@@ -70,15 +74,15 @@ public class SenderBluetoothManager {
             }
         });
         bluetoothSPP.setOnDataReceivedListener(new datareceive());
-        Log.d("bt", "mac:" +  getbtMAC());
+        Log.d("bt", "mac:" + getbtMAC());
 
         isInit = true;
 
     }
 
-    public void send(String tarBT,String sorWiFi,String tarWiFi,String data) {
+    public void send(String tarBT, String sorWiFi, String tarWiFi, String data) {
         cacheMAC = tarBT;
-        cachedata = craftmessage(sorWiFi,tarWiFi,data);
+        cachedata = craftmessage(sorWiFi, tarWiFi, data);
         if (connectedMAC == null) {
             Log.d("bt", "sending, connecting");
             bluetoothSPP.connect(tarBT);
@@ -97,12 +101,24 @@ public class SenderBluetoothManager {
         try {
             jo.put("sor", sor);
             jo.put("tar", tar);
-            jo.put("time",new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-            jo.put("data",data);
+            jo.put("time", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+            jo.put("data", data);
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return jo;
+    }
+
+    private JSONArray neighbour_message() {
+        JSONArray ja = new JSONArray();
+
+        Iterator<Map.Entry<String, SenderDevice>> it = SenderCore.wbMap.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, SenderDevice> e = it.next();
+            ja.put(e.getValue().toString());
+        }
+
+        return ja;
     }
 
 
@@ -118,10 +134,19 @@ public class SenderBluetoothManager {
             Toast.makeText(context, message + " " + data.length, Toast.LENGTH_LONG);
             Log.d("bt", "onDataReceived:" + message);
             try {
-                JSONObject jo=new JSONObject(message);
-                SenderCore.onReceive(jo.getString("sor"),jo.getString("tar"),jo.getString("time"),jo.getString("data"));
+                JSONObject jo = new JSONObject(message);
+                SenderCore.onReceive(jo.getString("sor"), jo.getString("tar"), jo.getString("time"), jo.getString("data"));
             } catch (JSONException e) {
-                e.printStackTrace();
+                try {
+                    JSONArray ja = new JSONArray(message);
+                    for (int i = 0; i < ja.length(); i++) {
+                        String temp=ja.getString(i);
+                        String splited[]=temp.split("\\|");
+                        SenderCore.updateDeviceInformation(splited[0],splited[1],Integer.parseInt(splited[2]),connectedMAC);
+                    }
+                } catch (JSONException e1) {
+                    e1.printStackTrace();
+                }
             }
         }
     }
