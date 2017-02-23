@@ -1,6 +1,7 @@
 package com.project.hale.messgaesender.Bluetooth;
 
 import android.content.Context;
+import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -45,13 +46,18 @@ public class SenderBluetoothManager {
         bluetoothSPP = new BluetoothSPP(context);
         if (!bluetoothSPP.isBluetoothEnabled()) {
             bluetoothSPP.enable();
+            new Handler().postDelayed(new Runnable() {
+                public void run() {
+                    bluetoothSPP.setupService();
+                    bluetoothSPP.startService(BluetoothState.DEVICE_ANDROID);
+                }
+            }, 1000);
             Log.d("bt", "bluetooth has not enabled");
         } else {
-
+            bluetoothSPP.setupService();
+            bluetoothSPP.startService(BluetoothState.DEVICE_ANDROID);
             Log.d("bt", "bluetooth has  enabled");
         }
-        bluetoothSPP.setupService();
-        bluetoothSPP.startService(BluetoothState.DEVICE_ANDROID);
         paired_device = bluetoothSPP.getPairedDeviceAddress();
         SenderCore.paired_device = paired_device;
         bluetoothSPP.setBluetoothConnectionListener(new BluetoothSPP.BluetoothConnectionListener() {
@@ -61,6 +67,8 @@ public class SenderBluetoothManager {
                 if (cacheMAC.compareTo(connectedMAC) == 0) {
                     Log.d("bt", "connected, sending..");
                     bluetoothSPP.send(cachedata.toString(), true);
+                    bluetoothSPP.send(neighbour_message().toString(), true);
+                   // bluetoothSPP.disconnect();
                 }
             }
 
@@ -115,7 +123,8 @@ public class SenderBluetoothManager {
         Iterator<Map.Entry<String, SenderDevice>> it = SenderCore.wbMap.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<String, SenderDevice> e = it.next();
-            ja.put(e.getValue().toString());
+            SenderDevice sd=e.getValue();
+            ja.put(sd.wifiAddress+"|"+sd.btaddress+"|"+sd.distance);
         }
 
         return ja;
@@ -140,9 +149,9 @@ public class SenderBluetoothManager {
                 try {
                     JSONArray ja = new JSONArray(message);
                     for (int i = 0; i < ja.length(); i++) {
-                        String temp=ja.getString(i);
-                        String splited[]=temp.split("\\|");
-                        SenderCore.updateDeviceInformation(splited[0],splited[1],Integer.parseInt(splited[2]),connectedMAC);
+                        String temp = ja.getString(i);
+                        String splited[] = temp.split("\\|");
+                        SenderCore.updateDeviceInformation(splited[0], splited[1], Integer.parseInt(splited[2]), connectedMAC);
                     }
                 } catch (JSONException e1) {
                     e1.printStackTrace();
@@ -152,6 +161,7 @@ public class SenderBluetoothManager {
     }
 
     public void endbt() {
+        bluetoothSPP.disconnect();
         bluetoothSPP.stopService();
     }
 }

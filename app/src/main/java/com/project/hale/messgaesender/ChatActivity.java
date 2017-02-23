@@ -62,9 +62,11 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void refreshmsglist() {
+        chatmsgList = new ArrayList<>();
         if (mainDB.isOpen()) {
             Cursor cursor = mainDB.rawQuery("SELECT * from msg where (tar ='" + Macadd + "' and sor ='" + SenderWifiManager.getMacAddr() + "') or (sor ='" + Macadd + "' and tar ='" + SenderWifiManager.getMacAddr() + "') order by time", null);
             while (cursor.moveToNext()) {
+
                 String tar = cursor.getString(cursor.getColumnIndex("tar"));
                 String sor = cursor.getString(cursor.getColumnIndex("sor"));
                 String msg = cursor.getString(cursor.getColumnIndex("msg"));
@@ -91,10 +93,6 @@ public class ChatActivity extends AppCompatActivity {
                     } else {
                         input_text.setText("");
                         SenderCore.send(SenderWifiManager.getMacAddr(), Macadd, newMsg);
-//                        this.sendMessage_boradcast(newMsg);
-//                        if (btMac.compareTo("UNKNOWN") != 0) {
-//                            sendMessage_bt(newMsg);
-//                        }
                         mainDB.execSQL("INSERT INTO msg('sor','tar','time','msg')values('" + SenderWifiManager.getMacAddr() + "','" + Macadd + "','" + SenderWifiManager.getTime() + "','" + newMsg + "')");
                         chatmsgList.add(new Chatmsg(SenderWifiManager.getMacAddr(), Macadd, SenderWifiManager.getTime(), newMsg));// make a temp message object to update the UI
                         chatMsgAdapter = new chatMsgAdapter(getApplicationContext(), R.id.msglist, chatmsgList);
@@ -107,14 +105,6 @@ public class ChatActivity extends AppCompatActivity {
             }
             return false;
         }
-
-//        private void sendMessage_boradcast(String message) {
-//            SenderWifiManager.getInstance().sendmsg(Macadd, message);
-//        }
-//
-//        private void sendMessage_bt(String message) {
-//            SenderBluetoothManager.getInstance().send(btMac, SenderWifiManager.getMacAddr(), Macadd, message);
-//        }
     }
 
     private class Chatmsg {

@@ -120,8 +120,11 @@ public class SenderCore {
     }
 
     public static void updateDeviceInformation(String wifiAddress, String btAddress, int distance, String from) {
+        if(wifiAddress.compareTo(SenderWifiManager.getMacAddr())==0){
+            return;//do not update itself
+        }
         if (!wbMap.containsKey(wifiAddress)) {
-            SenderDevice sd = new SenderDevice(wifiAddress, from, btAddress, distance, getTime());
+            SenderDevice sd = new SenderDevice(wifiAddress, from, btAddress, wifiAddress.compareTo(from)==0?1:(distance+1), getTime());
             wbMap.put(wifiAddress, sd);
             editor.putString(wifiAddress, sd.getdetail());
             //new 一个加进去
@@ -142,8 +145,10 @@ public class SenderCore {
             deviceList.add(senderDevice);
         }
         if (dlf != null) {
+            Log.d("dlf","good");
             dlf.updateUI();
         }
+
     }
 
     private static void loadPerference() {

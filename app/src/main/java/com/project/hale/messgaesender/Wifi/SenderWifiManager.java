@@ -279,16 +279,16 @@ public class SenderWifiManager implements SalutDataCallback {
         Iterator<String> it = snetwork.rawData.iterator();
         while (it.hasNext()) {
             String raw = it.next();
-            Log.d("Salut", "splited Raw data: " + raw);
+            Log.d("SenderWifi", "onReceive: " + raw);
             //load devices into content provider
             String[] splited = raw.split("\\|");
-            SenderCore.updateDeviceInformation(splited[0], splited[5], 1, splited[0]);
+            SenderCore.updateDeviceInformation(splited[0], splited[5], 0, splited[0]);
             if (splited[2].compareTo("all") != 0) {
-                SenderCore.updateDeviceInformation(splited[1], "UNKNOWN", 2, splited[0]);
+                SenderCore.updateDeviceInformation(splited[1], "UNKNOWN", 1, splited[0]);
             }
 
             if (splited[2].compareTo("all") == 0) {
-                Log.d("Salut", "prase Data: I recieved all from " + splited[0] + " when " + splited[3]);
+               // Log.d("Salut", "prase Data: I recieved all from " + splited[0] + " when " + splited[3]);
             } else {
                 SenderCore.onReceive(splited[1], splited[2], splited[3], splited[4]);
             }
@@ -315,7 +315,6 @@ public class SenderWifiManager implements SalutDataCallback {
 
                 StringBuilder res1 = new StringBuilder();
                 for (byte b : macBytes) {
-                    //  res1.append(Integer.toHexString(b & 0xFF).compareTo("0") == 0 ? "00:" : Integer.toHexString(b & 0xFF) + ":");//TODO fix bug here
                     if ((b & 0xFF) < 10) {
                         if (first) {
                             res1.append("0" + Integer.toHexString((b & 0xFF) + 2) + ":");

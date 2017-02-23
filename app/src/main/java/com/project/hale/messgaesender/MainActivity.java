@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         preferences = getSharedPreferences("user-around", Context.MODE_PRIVATE);
+        dfra = (DeviceListFragment) getSupportFragmentManager().findFragmentById(R.id.frag_list);
         SenderCore.init(this,preferences,dfra);
 
 
@@ -52,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
         }
         initBluetooth();
         setContentView(R.layout.activity_main);
-        dfra = (DeviceListFragment) getSupportFragmentManager().findFragmentById(R.id.frag_list);
+
         //init wifi
         wifistatus = (TextView) findViewById(R.id.my_wifi_detail);
         initWifi();
