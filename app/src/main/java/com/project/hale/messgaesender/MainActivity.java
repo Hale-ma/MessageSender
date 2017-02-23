@@ -41,9 +41,7 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        preferences = getSharedPreferences("user-around", Context.MODE_PRIVATE);
-        dfra = (DeviceListFragment) getSupportFragmentManager().findFragmentById(R.id.frag_list);
-        SenderCore.init(this,preferences,dfra);
+
 
 
         //init bluetooth
@@ -65,6 +63,10 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
             }
         };
         SenderWifiManager.getInstance().setStatus_handler(wifistatusUpdateHandler);
+        //init core
+        preferences = getSharedPreferences("user-around", Context.MODE_PRIVATE);
+        dfra = (DeviceListFragment) getSupportFragmentManager().findFragmentById(R.id.frag_list);
+        SenderCore.getsInstance().init(this,preferences,dfra);
 
 
     }

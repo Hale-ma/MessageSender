@@ -21,31 +21,42 @@ import java.util.Map;
 
 
 public class SenderCore {
+    private static SenderCore sInstance = new SenderCore();
+
     private static SQLiteDatabase mainDB;
     //Hash map store the
     public static String[] paired_device;
-    public static HashMap<String, SenderDevice> wbMap = new HashMap<>();
-    private static Handler msg_handler;
-    private static SharedPreferences preferences;
-    private static SharedPreferences.Editor editor;
-    public static DeviceListFragment dlf;
-    public static List<SenderDevice> deviceList = new ArrayList<>();//the list just for GUI display
-    public static void init(Context context, SharedPreferences sharedPreferences, DeviceListFragment dlf) {
+    public HashMap<String, SenderDevice> wbMap = new HashMap<>();
+    private Handler msg_handler;
+    private SharedPreferences preferences;
+    private SharedPreferences.Editor editor;
+    public DeviceListFragment dlf;
+    public List<SenderDevice> deviceList = new ArrayList<>();//the list just for GUI display
+
+    public void init(Context context, SharedPreferences sharedPreferences, DeviceListFragment dlf) {
         mainDB = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
         mainDB.execSQL("CREATE TABLE IF NOT EXISTS msg(sor char(64),tar char(64),time char(64),msg char(255))");
-        SenderCore.preferences = sharedPreferences;
+        this.preferences = sharedPreferences;
         loadPerference();
-        SenderCore.dlf=dlf;
+        this.dlf = dlf;
     }
 
+    private SenderCore() {
+
+    }
+
+    public static SenderCore getsInstance() {
+        return sInstance;
+    }
 
     /**
      * In this application, wifi MAC is the unique identifier
+     *
      * @param sorWiFi
      * @param tarWiFi
      * @param data
      */
-    public static void send(String sorWiFi, String tarWiFi, String data) {
+    public void send(String sorWiFi, String tarWiFi, String data) {
         Log.d("SenderCore", sorWiFi + "=>" + tarWiFi + " : " + data);
         SenderDevice sd = wbMap.get(tarWiFi);
         Log.d("SenderCore", sd + " " + sd.btaddress);
@@ -64,7 +75,7 @@ public class SenderCore {
         }
     }
 
-    public static boolean send_by_BT_neighbour(String sorWiFi, String tarWiFi, String data) {
+    public boolean send_by_BT_neighbour(String sorWiFi, String tarWiFi, String data) {
         SenderDevice sd = wbMap.get(wbMap.get(tarWiFi).nearestaddress);
         if (sd.btaddress.compareTo("UNKNOWN") != 0) { //know the bt address
             for (int i = 0; i < paired_device.length; i++) {
@@ -77,7 +88,7 @@ public class SenderCore {
         return false;
     }
 
-    public static void onReceive(String sorWiFi, String tarWiFi, String time, String data) {
+    public void onReceive(String sorWiFi, String tarWiFi, String time, String data) {
         Cursor c = mainDB.rawQuery("SELECT * FROM msg WHERE sor='" + sorWiFi + "' and tar='" + tarWiFi + "' and time='" + time + "' and msg ='" + data + "'", null);
         if (c.getCount() != 0) {
             Log.d("db", "duplicate" + data);
@@ -86,7 +97,9 @@ public class SenderCore {
             mainDB.execSQL("INSERT INTO msg('sor','tar','time','msg')values('" + sorWiFi + "','" + tarWiFi + "','" + time + "','" + data + "')");
             if (tarWiFi.compareTo(SenderWifiManager.getInstance().getMacAddr()) == 0) {//i am the target!
                 Log.d("SenderCore", "prase Data: I recieved:" + data + "from " + sorWiFi + " when " + time);
-                msg_handler.handleMessage(new Message());
+                if (msg_handler != null) {
+                    msg_handler.handleMessage(new Message());
+                }
             } else {//i am not the target
                 Log.d("SenderCore", "prase Data: I need to route the messgae:" + data + "from " + sorWiFi + " when " + time);
                 if (sorWiFi.compareTo(SenderWifiManager.getInstance().getMacAddr()) != 0) {// do not "route" the message from itself
@@ -105,26 +118,26 @@ public class SenderCore {
         mainDB.close();
     }
 
-    public static void setMsg_handler(Handler msg_handler) {
-        SenderCore.msg_handler = msg_handler;
+    public void setMsg_handler(Handler msg_handler) {
+        this.msg_handler = msg_handler;
     }
 
-    public static void startupdateDeviceInformation() {
+    public void startupdateDeviceInformation() {
         editor = preferences.edit();
     }
 
-    public static void finishDeviceUpdate() {
+    public void finishDeviceUpdate() {
         editor.commit();
         refeshDeviceList();
 
     }
 
-    public static void updateDeviceInformation(String wifiAddress, String btAddress, int distance, String from) {
-        if(wifiAddress.compareTo(SenderWifiManager.getMacAddr())==0){
+    public void updateDeviceInformation(String wifiAddress, String btAddress, int distance, String from) {
+        if (wifiAddress.compareTo(SenderWifiManager.getMacAddr()) == 0) {
             return;//do not update itself
         }
         if (!wbMap.containsKey(wifiAddress)) {
-            SenderDevice sd = new SenderDevice(wifiAddress, from, btAddress, wifiAddress.compareTo(from)==0?1:(distance+1), getTime());
+            SenderDevice sd = new SenderDevice(wifiAddress, from, btAddress, wifiAddress.compareTo(from) == 0 ? 1 : (distance + 1), getTime());
             wbMap.put(wifiAddress, sd);
             editor.putString(wifiAddress, sd.getdetail());
             //new 一个加进去
@@ -133,25 +146,25 @@ public class SenderCore {
             if (sd.distance > distance) {
                 SenderDevice sdn = new SenderDevice(wifiAddress, from, btAddress, distance, getTime());
                 wbMap.put(wifiAddress, sdn);
-                editor.putString(wifiAddress,sdn.getdetail());
+                editor.putString(wifiAddress, sdn.getdetail());
             }
 
         }
     }
 
-    private static void refeshDeviceList(){
-        deviceList=new ArrayList<>();
+    private void refeshDeviceList() {
+        deviceList = new ArrayList<>();
         for (SenderDevice senderDevice : wbMap.values()) {
             deviceList.add(senderDevice);
         }
         if (dlf != null) {
-            Log.d("dlf","good");
+            Log.d("dlf", "good");
             dlf.updateUI();
         }
 
     }
 
-    private static void loadPerference() {
+    private void loadPerference() {
         Map<String, ?> usr = preferences.getAll();
         deviceList = new ArrayList<SenderDevice>();
         Iterator<String> iter = usr.keySet().iterator();
@@ -160,7 +173,7 @@ public class SenderCore {
             String information = ((String) (usr.get(mac)));
             SenderDevice tempdevice = new SenderDevice(mac, information);
             deviceList.add(tempdevice);
-            SenderCore.wbMap.put(mac, tempdevice);
+            wbMap.put(mac, tempdevice);
         }
     }
 
@@ -171,7 +184,7 @@ public class SenderCore {
 
     }
 
-    public static List<SenderDevice> getDeviceList() {
+    public List<SenderDevice> getDeviceList() {
         return deviceList;
     }
 

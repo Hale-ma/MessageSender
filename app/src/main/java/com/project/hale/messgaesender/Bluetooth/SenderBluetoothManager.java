@@ -59,7 +59,7 @@ public class SenderBluetoothManager {
             Log.d("bt", "bluetooth has  enabled");
         }
         paired_device = bluetoothSPP.getPairedDeviceAddress();
-        SenderCore.paired_device = paired_device;
+        SenderCore.getsInstance().paired_device = paired_device;
         bluetoothSPP.setBluetoothConnectionListener(new BluetoothSPP.BluetoothConnectionListener() {
             public void onDeviceConnected(String name, String address) {
                 Log.d("bt", "onDeviceConnected:" + name + " " + address);
@@ -120,7 +120,7 @@ public class SenderBluetoothManager {
     private JSONArray neighbour_message() {
         JSONArray ja = new JSONArray();
 
-        Iterator<Map.Entry<String, SenderDevice>> it = SenderCore.wbMap.entrySet().iterator();
+        Iterator<Map.Entry<String, SenderDevice>> it = SenderCore.getsInstance().wbMap.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<String, SenderDevice> e = it.next();
             SenderDevice sd=e.getValue();
@@ -144,14 +144,14 @@ public class SenderBluetoothManager {
             Log.d("bt", "onDataReceived:" + message);
             try {
                 JSONObject jo = new JSONObject(message);
-                SenderCore.onReceive(jo.getString("sor"), jo.getString("tar"), jo.getString("time"), jo.getString("data"));
+                SenderCore.getsInstance().onReceive(jo.getString("sor"), jo.getString("tar"), jo.getString("time"), jo.getString("data"));
             } catch (JSONException e) {
                 try {
                     JSONArray ja = new JSONArray(message);
                     for (int i = 0; i < ja.length(); i++) {
                         String temp = ja.getString(i);
                         String splited[] = temp.split("\\|");
-                        SenderCore.updateDeviceInformation(splited[0], splited[1], Integer.parseInt(splited[2]), connectedMAC);
+                        SenderCore.getsInstance().updateDeviceInformation(splited[0], splited[1], Integer.parseInt(splited[2]), connectedMAC);
                     }
                 } catch (JSONException e1) {
                     e1.printStackTrace();

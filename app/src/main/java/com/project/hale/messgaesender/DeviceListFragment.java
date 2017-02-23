@@ -66,7 +66,7 @@ public class DeviceListFragment extends ListFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         // set list adapter with row layout to adapter data
-        this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, SenderCore.getDeviceList()));
+        this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, SenderCore.getsInstance().getDeviceList()));
     }
 
     @Override
@@ -120,7 +120,7 @@ public class DeviceListFragment extends ListFragment {
     }
 
     public void updateUI() {
-        this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, SenderCore.getDeviceList()));
+        this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, SenderCore.getsInstance().getDeviceList()));
         //  this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, slist));
         Log.d("updateUI", "updateUI");
     }

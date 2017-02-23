@@ -56,7 +56,7 @@ public class ChatActivity extends AppCompatActivity {
             }
         };
 
-        SenderCore.setMsg_handler(mUpdateHandler);
+        SenderCore.getsInstance().setMsg_handler(mUpdateHandler);
 
 
     }
@@ -92,7 +92,7 @@ public class ChatActivity extends AppCompatActivity {
                         input_text.setError("Can not send empty message!");
                     } else {
                         input_text.setText("");
-                        SenderCore.send(SenderWifiManager.getMacAddr(), Macadd, newMsg);
+                        SenderCore.getsInstance().send(SenderWifiManager.getMacAddr(), Macadd, newMsg);
                         mainDB.execSQL("INSERT INTO msg('sor','tar','time','msg')values('" + SenderWifiManager.getMacAddr() + "','" + Macadd + "','" + SenderWifiManager.getTime() + "','" + newMsg + "')");
                         chatmsgList.add(new Chatmsg(SenderWifiManager.getMacAddr(), Macadd, SenderWifiManager.getTime(), newMsg));// make a temp message object to update the UI
                         chatMsgAdapter = new chatMsgAdapter(getApplicationContext(), R.id.msglist, chatmsgList);

@@ -17,7 +17,6 @@ import com.peak.salut.SalutDataReceiver;
 import com.peak.salut.SalutDevice;
 import com.peak.salut.SalutServiceData;
 import com.project.hale.messgaesender.Bluetooth.SenderBluetoothManager;
-import com.project.hale.messgaesender.DeviceListFragment;
 
 import java.net.NetworkInterface;
 import java.text.SimpleDateFormat;
@@ -27,8 +26,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.project.hale.messgaesender.Wifi.SenderCore.finishDeviceUpdate;
-import static com.project.hale.messgaesender.Wifi.SenderCore.startupdateDeviceInformation;
 
 /**
  * Created by mahon on 2016/12/20.
@@ -275,26 +272,26 @@ public class SenderWifiManager implements SalutDataCallback {
 
 
     private void praseData() {
-        startupdateDeviceInformation();
+        SenderCore.getsInstance().startupdateDeviceInformation();
         Iterator<String> it = snetwork.rawData.iterator();
         while (it.hasNext()) {
             String raw = it.next();
             Log.d("SenderWifi", "onReceive: " + raw);
             //load devices into content provider
             String[] splited = raw.split("\\|");
-            SenderCore.updateDeviceInformation(splited[0], splited[5], 0, splited[0]);
+            SenderCore.getsInstance().updateDeviceInformation(splited[0], splited[5], 0, splited[0]);
             if (splited[2].compareTo("all") != 0) {
-                SenderCore.updateDeviceInformation(splited[1], "UNKNOWN", 1, splited[0]);
+                SenderCore.getsInstance().updateDeviceInformation(splited[1], "UNKNOWN", 1, splited[0]);
             }
 
             if (splited[2].compareTo("all") == 0) {
-               // Log.d("Salut", "prase Data: I recieved all from " + splited[0] + " when " + splited[3]);
+                // Log.d("Salut", "prase Data: I recieved all from " + splited[0] + " when " + splited[3]);
             } else {
-                SenderCore.onReceive(splited[1], splited[2], splited[3], splited[4]);
+                SenderCore.getsInstance().onReceive(splited[1], splited[2], splited[3], splited[4]);
             }
             snetwork.rawData = new ArrayList<String>();
         }
-        finishDeviceUpdate();
+        SenderCore.getsInstance().finishDeviceUpdate();
     }
 
     @NonNull
