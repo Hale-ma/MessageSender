@@ -27,10 +27,7 @@ import com.project.hale.messgaesender.Wifi.SenderDevice;
 import com.project.hale.messgaesender.Wifi.SenderWifiManager;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements DeviceListFragment.OnFragmentInteractionListener, SalutDataCallback {
     Salut snetwork;
@@ -41,9 +38,6 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
-
         //init bluetooth
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             String permissions[] = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
@@ -97,16 +91,6 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
             };
             snetwork = new Salut(dataReceiver, sd, sc);
             SharedPreferences preferences = getSharedPreferences("SenderSettings", Context.MODE_PRIVATE);
-//            Map<String, ?> usr = preferences.getAll();
-//            SenderWifiManager.getInstance().deviceList = new ArrayList<>();
-//            for (String mac : usr.keySet()) {
-//                String information = (String) usr.get(mac);
-//                SenderDevice tempdevice = new SenderDevice(mac, information);
-//                SenderWifiManager.getInstance().deviceList.add(tempdevice);
-//                SenderCore.wbMap.put(mac, tempdevice);
-//            }
-//            dfra.updateUI();
-//            SQLiteDatabase mainDB = SQLiteDatabase.openOrCreateDatabase(this.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
             SenderWifiManager.getInstance().init(dataReceiver, snetwork,  this, preferences);
             SenderWifiManager.getInstance().isInit = true;
         } else {
@@ -131,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
         Log.d("Salut", "Ending");
         SenderWifiManager.getInstance().endservice();
         SenderBluetoothManager.getInstance().endbt();
-        SenderCore.stop();
+        SenderCore.getsInstance().stop();
         super.onDestroy();
     }
 

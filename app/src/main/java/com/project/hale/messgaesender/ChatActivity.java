@@ -141,7 +141,7 @@ public class ChatActivity extends AppCompatActivity {
             }
             TextView time = (TextView) v.findViewById(R.id.msg_time);
             TextView msg = (TextView) v.findViewById(R.id.msg_row);
-            TextView send = (TextView) v.findViewById(R.id.msg_sender);
+            //TextView send = (TextView) v.findViewById(R.id.msg_sender);
             time.setText(cm.time);
             msg.setText(cm.msg);
             return v;

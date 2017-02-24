@@ -52,7 +52,6 @@ public class DeviceListFragment extends ListFragment {
      * @param param2 Parameter 2.
      * @return A new instance of fragment DeviceListFragment.
      */
-    // TODO: Rename and change types and number of parameters
     public static DeviceListFragment newInstance(String param1, String param2) {
         DeviceListFragment fragment = new DeviceListFragment();
         Bundle args = new Bundle();
@@ -89,7 +88,6 @@ public class DeviceListFragment extends ListFragment {
         return view;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(SenderDevice senderDevice) {
         if (mListener != null) {
             mListener.onFragmentInteraction(senderDevice);
@@ -173,7 +171,6 @@ public class DeviceListFragment extends ListFragment {
                 if (bottom != null) {
                     bottom.setText(device.time + " " + ((device.btaddress.compareTo("UNKNOWN")==0) ? ("\nNEAREST:" + device.nearestaddress) : ("\nBLUETOOTH:" + device.btaddress)));
                 }
-                //  Log.d("adapter", "WiFiPeerListAdapter : getView : " + device.toString());
             }
             return v;
         }

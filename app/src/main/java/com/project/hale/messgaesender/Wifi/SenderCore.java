@@ -9,6 +9,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.project.hale.messgaesender.Bluetooth.SenderBluetoothManager;
+import com.project.hale.messgaesender.Bluetooth.connectionType;
 import com.project.hale.messgaesender.DeviceListFragment;
 
 import java.text.SimpleDateFormat;
@@ -19,11 +20,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static com.project.hale.messgaesender.Bluetooth.connectionType.DIRECT;
+import static com.project.hale.messgaesender.Bluetooth.connectionType.NEIGHBOUR;
+
 
 public class SenderCore {
     private static SenderCore sInstance = new SenderCore();
 
-    private static SQLiteDatabase mainDB;
+    private SQLiteDatabase mainDB;
     //Hash map store the
     public static String[] paired_device;
     public HashMap<String, SenderDevice> wbMap = new HashMap<>();
@@ -32,6 +36,7 @@ public class SenderCore {
     private SharedPreferences.Editor editor;
     public DeviceListFragment dlf;
     public List<SenderDevice> deviceList = new ArrayList<>();//the list just for GUI display
+    public connectionType connectionType= DIRECT;
 
     public void init(Context context, SharedPreferences sharedPreferences, DeviceListFragment dlf) {
         mainDB = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
@@ -63,30 +68,41 @@ public class SenderCore {
         if (sd.btaddress.compareTo("UNKNOWN") != 0) { //know the bt address
             for (int i = 0; i < paired_device.length; i++) {
                 if (paired_device[i].compareTo(sd.btaddress) == 0) { //it is also paired
-
+                    connectionType= DIRECT;
                     SenderBluetoothManager.getInstance().send(sd.btaddress, sorWiFi, tarWiFi, data);// try to send with bluetooth without considering the distance
-
                 }
             }
         } else {//it is impossible to send it direct with bluetooth
-            if (!send_by_BT_neighbour(sorWiFi, tarWiFi, data)) {  //try to send by the nearest bt neighbourhood,if it failed to send by by, then send by wifi
-                send_by_Wifi(sorWiFi, tarWiFi, data);
+            send_by_BT_neighbour(sorWiFi, tarWiFi, data); //try to send by the nearest bt neighbourhood,if it failed to send by by, then send by wifi
+
             }
         }
-    }
 
+    /**
+     * try to send the message to the nearest neighbour, if it faileds ,send it by wifi
+     *
+     * @param sorWiFi
+     * @param tarWiFi
+     * @param data
+     * @return
+     */
     public boolean send_by_BT_neighbour(String sorWiFi, String tarWiFi, String data) {
         SenderDevice sd = wbMap.get(wbMap.get(tarWiFi).nearestaddress);
         if (sd.btaddress.compareTo("UNKNOWN") != 0) { //know the bt address
             for (int i = 0; i < paired_device.length; i++) {
                 if (paired_device[i].compareTo(sd.btaddress) == 0) { //it is also paired
+                    connectionType= NEIGHBOUR;
                     SenderBluetoothManager.getInstance().send(sd.btaddress, sorWiFi, tarWiFi, data);
                     return true;
                 }
             }
+        }else {
+            send_by_Wifi(sorWiFi, tarWiFi, data);
         }
         return false;
     }
+
+
 
     public void onReceive(String sorWiFi, String tarWiFi, String time, String data) {
         Cursor c = mainDB.rawQuery("SELECT * FROM msg WHERE sor='" + sorWiFi + "' and tar='" + tarWiFi + "' and time='" + time + "' and msg ='" + data + "'", null);
@@ -110,11 +126,18 @@ public class SenderCore {
         }
     }
 
-    public static void send_by_Wifi(String sorWiFi, String tarWiFi, String data) {
+    public void onBTfaild(){
+
+    }
+
+    public void onBTsuccess(){
+
+    }
+    public void send_by_Wifi(String sorWiFi, String tarWiFi, String data) {
         SenderWifiManager.getInstance().sendmsg(tarWiFi, data, sorWiFi.compareTo(SenderWifiManager.getInstance().getMacAddr()) == 0 ? 0 : 1);
     }
 
-    public static void stop() {
+    public void stop() {
         mainDB.close();
     }
 
@@ -140,10 +163,9 @@ public class SenderCore {
             SenderDevice sd = new SenderDevice(wifiAddress, from, btAddress, wifiAddress.compareTo(from) == 0 ? 1 : (distance + 1), getTime());
             wbMap.put(wifiAddress, sd);
             editor.putString(wifiAddress, sd.getdetail());
-            //new 一个加进去
         } else {
             SenderDevice sd = wbMap.get(wifiAddress);
-            if (sd.distance > distance) {
+            if (sd.distance >= distance) {
                 SenderDevice sdn = new SenderDevice(wifiAddress, from, btAddress, distance, getTime());
                 wbMap.put(wifiAddress, sdn);
                 editor.putString(wifiAddress, sdn.getdetail());
@@ -158,7 +180,6 @@ public class SenderCore {
             deviceList.add(senderDevice);
         }
         if (dlf != null) {
-            Log.d("dlf", "good");
             dlf.updateUI();
         }
 
@@ -166,7 +187,7 @@ public class SenderCore {
 
     private void loadPerference() {
         Map<String, ?> usr = preferences.getAll();
-        deviceList = new ArrayList<SenderDevice>();
+        deviceList = new ArrayList<>();
         Iterator<String> iter = usr.keySet().iterator();
         while (iter.hasNext()) {
             String mac = iter.next();
@@ -186,6 +207,17 @@ public class SenderCore {
 
     public List<SenderDevice> getDeviceList() {
         return deviceList;
+    }
+
+    public String getWifiMac(String btMac){
+        Iterator<SenderDevice> it=deviceList.iterator();
+        while(it.hasNext()){
+            SenderDevice tempsd=it.next();
+            if(tempsd.btaddress.compareTo(btMac)==0){
+                return tempsd.wifiAddress;
+            }
+        }
+        return "UNKNOWN";
     }
 
 

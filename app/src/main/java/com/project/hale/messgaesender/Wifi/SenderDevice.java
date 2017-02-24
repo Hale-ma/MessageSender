@@ -1,8 +1,6 @@
 package com.project.hale.messgaesender.Wifi;
 
-/**
- * Created by mahon on 2016/11/13.
- */
+
 
 public class SenderDevice {
     public String wifiAddress, btaddress, nearestaddress;
