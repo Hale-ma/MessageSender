@@ -21,8 +21,6 @@ import java.util.Map;
 import app.akexorcist.bluetotohspp.library.BluetoothSPP;
 import app.akexorcist.bluetotohspp.library.BluetoothState;
 
-import static com.project.hale.messgaesender.Bluetooth.connectionType.DIRECT;
-
 
 public class SenderBluetoothManager {
     private Context context;
@@ -34,8 +32,6 @@ public class SenderBluetoothManager {
     private String tarBT;
     private String cacheMAC = "";
     private JSONObject cachedata;
-
-
 
 
     private SenderBluetoothManager() {
@@ -75,6 +71,7 @@ public class SenderBluetoothManager {
                     bluetoothSPP.send(cachedata.toString(), true);
                     //when the first time it connect to a bluetooth device, it send it neighbour information to the node, in this way ,two device will exchange the neighbour information when connected
                     bluetoothSPP.send(neighbour_message().toString(), true);
+                    SenderCore.getsInstance().onSuccess();
                     // bluetoothSPP.disconnect();
                 }
             }
@@ -85,7 +82,9 @@ public class SenderBluetoothManager {
             }
 
             public void onDeviceConnectionFailed() {
+                SenderCore.getsInstance().onBTfaild();
                 Log.d("bt", "onDeviceConnectionFailed");
+
             }
         });
         bluetoothSPP.setOnDataReceivedListener(new datareceive());
@@ -96,7 +95,7 @@ public class SenderBluetoothManager {
     }
 
     /**
-     *try to connect to the target Bluetooth device and send the data .
+     * try to connect to the target Bluetooth device and send the data .
      *
      * @param tarBT
      * @param sorWiFi
@@ -116,6 +115,7 @@ public class SenderBluetoothManager {
         } else {
             Log.d("bt", "send directly");
             bluetoothSPP.send(cachedata.toString(), true);
+            SenderCore.getsInstance().onSuccess();
         }
     }
 
@@ -138,13 +138,13 @@ public class SenderBluetoothManager {
         Iterator<Map.Entry<String, SenderDevice>> it = SenderCore.getsInstance().wbMap.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<String, SenderDevice> e = it.next();
-            SenderDevice sd=e.getValue();
-            if(sd.btaddress!=connectedMAC) {
+            SenderDevice sd = e.getValue();
+            if (sd.btaddress != connectedMAC) {
                 ja.put(sd.wifiAddress + "|" + sd.btaddress + "|" + sd.distance);
             }
 
         }
-        ja.put(SenderWifiManager.getMacAddr()+"|"+getbtMAC()+"|1");//itself
+        ja.put(SenderWifiManager.getMacAddr() + "|" + getbtMAC() + "|1");//itself
 
         return ja;
     }
@@ -159,6 +159,7 @@ public class SenderBluetoothManager {
 
         @Override
         public void onDataReceived(byte[] data, String message) {
+
             Toast.makeText(context, message + " " + data.length, Toast.LENGTH_LONG);
             Log.d("bt", "onDataReceived:" + message);
             try {
@@ -166,12 +167,14 @@ public class SenderBluetoothManager {
                 SenderCore.getsInstance().onReceive(jo.getString("sor"), jo.getString("tar"), jo.getString("time"), jo.getString("data"));
             } catch (JSONException e) {
                 try {
+                    SenderCore.getsInstance().startupdateDeviceInformation();
                     JSONArray ja = new JSONArray(message);
                     for (int i = 0; i < ja.length(); i++) {
                         String temp = ja.getString(i);
                         String splited[] = temp.split("\\|");
                         SenderCore.getsInstance().updateDeviceInformation(splited[0], splited[1], Integer.parseInt(splited[2]), SenderCore.getsInstance().getWifiMac(connectedMAC));
                     }
+                    SenderCore.getsInstance().finishDeviceUpdate();
                 } catch (JSONException e1) {
                     e1.printStackTrace();
                 }
