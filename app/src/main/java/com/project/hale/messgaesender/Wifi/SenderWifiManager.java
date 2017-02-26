@@ -279,14 +279,11 @@ public class SenderWifiManager implements SalutDataCallback {
             Log.d("SenderWifi", "onReceive: " + raw);
             //load devices into content provider
             String[] splited = raw.split("\\|");
-            SenderCore.getsInstance().updateDeviceInformation(splited[0], splited[5],1, splited[0]);
-            if (splited[2].compareTo("all") != 0) {
-                SenderCore.getsInstance().updateDeviceInformation(splited[1], "UNKNOWN", 2, splited[0]);
+            SenderCore.getsInstance().updateDeviceInformation_bymessage(splited[0], splited[5], splited[0]);
+            if (splited[2].compareTo(getMacAddr()) == 0) {
+                SenderCore.getsInstance().updateDeviceInformation_bymessage(splited[0], splited[5], splited[1]);
             }
-
-            if (splited[2].compareTo("all") == 0) {
-                // Log.d("Salut", "prase Data: I recieved all from " + splited[0] + " when " + splited[3]);
-            } else {
+            if(splited[2].compareTo("all")!=0) {
                 SenderCore.getsInstance().onReceive(splited[1], splited[2], splited[3], splited[4]);
             }
             snetwork.rawData = new ArrayList<String>();

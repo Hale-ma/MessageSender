@@ -93,7 +93,7 @@ public class SenderCore {
         String[] ns = {sorWiFi, tarWiFi, data};
         nowSending = ns;
         SenderDevice sd = wbMap.get(tarWiFi);
-        Log.d("SenderCore", sd + " " + sd.btaddress);
+        Log.d("SenderCore", "target:" + sd + " " + sd.btaddress);
         if (sd.btaddress.compareTo("UNKNOWN") != 0) { //know the bt address
             for (int i = 0; i < paired_device.length; i++) {
                 if (paired_device[i].compareTo(sd.btaddress) == 0) { //it is also paired
@@ -119,8 +119,10 @@ public class SenderCore {
      * @return
      */
     public void send_by_BT_neighbour(String sorWiFi, String tarWiFi, String data) {
-        Log.d("SenderCore", "send_by_BT_neighbour:" + sorWiFi + "=>" + tarWiFi + ":" + data);
+        Log.d("SenderCore", wbMap.get(tarWiFi) + " " + wbMap.get(tarWiFi).nearestaddress);
         SenderDevice sd = wbMap.get(wbMap.get(tarWiFi).nearestaddress);
+        Log.d("SenderCore", "send_by_BT_neighbour:" + sorWiFi + "=>" + tarWiFi + "(" + sd.btaddress + "):" + data);
+
         if (sd.btaddress.compareTo("UNKNOWN") != 0) { //know the bt address
             for (int i = 0; i < paired_device.length; i++) {
                 if (paired_device[i].compareTo(sd.btaddress) == 0) { //it is also paired
@@ -153,7 +155,6 @@ public class SenderCore {
             } else {//i am not the target
                 Log.d("SenderCore", "prase Data: I need to route the messgae:" + data + "from " + sorWiFi + " when " + time);
                 if (sorWiFi.compareTo(SenderWifiManager.getInstance().getMacAddr()) != 0) {// do not "route" the message from itself
-                    //  sendmsg(sorWiFi + "|" + tarWiFi + "|" + time, data, 1);
                     send(sorWiFi, tarWiFi, data);
                 }
             }
@@ -181,7 +182,11 @@ public class SenderCore {
 
     public void send_by_Wifi(String sorWiFi, String tarWiFi, String data) {
         Log.d("SenderCore", "send_by_Wifi:" + sorWiFi + "=>" + tarWiFi + ":" + data);
-        SenderWifiManager.getInstance().sendmsg(tarWiFi, data, sorWiFi.compareTo(SenderWifiManager.getInstance().getMacAddr()) == 0 ? 0 : 1);
+        if (sorWiFi.compareTo(SenderWifiManager.getInstance().getMacAddr()) == 0) {
+            SenderWifiManager.getInstance().sendmsg(tarWiFi, data, 0);
+        } else {
+            SenderWifiManager.getInstance().sendmsg(sorWiFi + "|" + tarWiFi + "|" + getTime(), data, 1);
+        }
     }
 
     public void stop() {
@@ -202,23 +207,53 @@ public class SenderCore {
 
     }
 
-    public void updateDeviceInformation(String wifiAddress, String btAddress, int distance, String from) {
+    /**
+     * @param wifiAddress device wifi mac address
+     * @param btAddress   device bt mac address
+     * @param distance    the distance between source device  and this device
+     * @param from        source wifi mac address
+     */
+    public void updateDeviceInformation_bySharing(String wifiAddress, String btAddress, int distance, String from) {
         if (wifiAddress.compareTo(SenderWifiManager.getMacAddr()) == 0) {
             return;//do not update itself
         }
-        if (!wbMap.containsKey(wifiAddress)) {
-            SenderDevice sd = new SenderDevice(wifiAddress, from, btAddress, wifiAddress.compareTo(from) == 0 ? 1 : (distance + 1), getTime());
-            wbMap.put(wifiAddress, sd);
-            editor.putString(wifiAddress, sd.getdetail());
+        if (wbMap.containsKey(wifiAddress)) {
+            SenderDevice old = wbMap.get(wifiAddress);
+            if (old.nearestaddress.compareTo(from) != 0 && old.distance < distance) {
+                return;
+            } else {
+                SenderDevice sd = new SenderDevice(wifiAddress, from, btAddress, distance == 100 ? 100 : distance + 1, getTime());
+                wbMap.put(wifiAddress, sd);
+                editor.putString(sd.wifiAddress, sd.getdetail());
+            }
         } else {
-            SenderDevice sd = wbMap.get(wifiAddress);
-            if (sd.distance >= distance) {
-                SenderDevice sdn = new SenderDevice(wifiAddress, from, btAddress, distance, getTime());
-                wbMap.put(wifiAddress, sdn);
-                editor.putString(wifiAddress, sdn.getdetail());
+            SenderDevice sd = new SenderDevice(wifiAddress, from, btAddress, distance == 100 ? 100 : distance + 1, getTime());
+            wbMap.put(wifiAddress, sd);
+            editor.putString(sd.wifiAddress, sd.getdetail());
+        }
+
+    }
+
+    public void updateDeviceInformation_bymessage(String wifiAddress, String btAddress, String from) {
+        //update the neibghour node
+        SenderDevice sd = new SenderDevice(wifiAddress, wifiAddress, btAddress, 1, getTime());
+        wbMap.put(wifiAddress, sd);
+
+        if (wbMap.containsKey(from)) {
+            SenderDevice temp = wbMap.get(from);
+            if (temp.nearestaddress.compareTo(wifiAddress) != 0 && temp.distance >= 100) {
+                SenderDevice sd_from = new SenderDevice(from, wifiAddress, temp.btaddress, 100, getTime());
+                wbMap.put(wifiAddress, sd_from);
+                editor.putString(sd.wifiAddress, sd.getdetail());
             }
 
+        } else {
+            SenderDevice sd_from = new SenderDevice(from, wifiAddress, "UNKNOWN", 100, getTime());
+            wbMap.put(wifiAddress, sd_from);
+            editor.putString(sd.wifiAddress, sd.getdetail());
         }
+
+
     }
 
     private void refeshDeviceList() {
@@ -264,6 +299,7 @@ public class SenderCore {
                 return tempsd.wifiAddress;
             }
         }
+        Log.d("SenderCore", "getWifiMac return X :" + btMac);
         return "UNKNOWN";
     }
 

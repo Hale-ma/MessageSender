@@ -7,6 +7,15 @@ public class SenderDevice {
     public int distance = 0;
     public String time = "";
 
+    /**
+     * Construct a new SenderDevice
+     *
+     * @param wifiAddress
+     * @param nearestaddress nearest node wifi address
+     * @param btaddress its BT address ,can be "UNKNOWN"
+     * @param distance 1= can connect directly
+     * @param time the last time find it avaliable
+     */
     public SenderDevice(String wifiAddress, String nearestaddress, String btaddress, int distance, String time) {
         this.wifiAddress = wifiAddress;
         this.distance = distance;

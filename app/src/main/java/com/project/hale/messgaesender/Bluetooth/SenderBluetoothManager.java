@@ -68,9 +68,9 @@ public class SenderBluetoothManager {
                 connectedMAC = address;
                 if (cacheMAC.compareTo(connectedMAC) == 0) {
                     Log.d("bt", "connected, sending..");
-                    bluetoothSPP.send(cachedata.toString(), true);
                     //when the first time it connect to a bluetooth device, it send it neighbour information to the node, in this way ,two device will exchange the neighbour information when connected
                     bluetoothSPP.send(neighbour_message().toString(), true);
+                    bluetoothSPP.send(cachedata.toString(), true);
                     SenderCore.getsInstance().onSuccess();
                     // bluetoothSPP.disconnect();
                 }
@@ -144,7 +144,7 @@ public class SenderBluetoothManager {
             }
 
         }
-        ja.put(SenderWifiManager.getMacAddr() + "|" + getbtMAC() + "|1");//itself
+        ja.put(SenderWifiManager.getMacAddr() + "|" + getbtMAC() + "|0");//itself
 
         return ja;
     }
@@ -161,7 +161,7 @@ public class SenderBluetoothManager {
         public void onDataReceived(byte[] data, String message) {
 
             Toast.makeText(context, message + " " + data.length, Toast.LENGTH_LONG);
-            Log.d("bt", "onDataReceived:" + message);
+            Log.d("SenderCore", "onDataReceived:" + message);
             try {
                 JSONObject jo = new JSONObject(message);
                 SenderCore.getsInstance().onReceive(jo.getString("sor"), jo.getString("tar"), jo.getString("time"), jo.getString("data"));
@@ -172,8 +172,12 @@ public class SenderBluetoothManager {
                     for (int i = 0; i < ja.length(); i++) {
                         String temp = ja.getString(i);
                         String splited[] = temp.split("\\|");
-                        SenderCore.getsInstance().updateDeviceInformation(splited[0], splited[1], Integer.parseInt(splited[2]), SenderCore.getsInstance().getWifiMac(connectedMAC));
-                    }
+                        if (splited[1].compareTo(connectedMAC)==0) {
+                            SenderCore.getsInstance().updateDeviceInformation_bymessage(splited[0], splited[1], splited[0]);
+                            Log.d("SenderCore","new device by BT:"+splited[0]+" "+ splited[1]);
+                        }else{
+                        SenderCore.getsInstance().updateDeviceInformation_bySharing(splited[0], splited[1], Integer.parseInt(splited[2]), SenderCore.getsInstance().getWifiMac(connectedMAC));
+                    }}
                     SenderCore.getsInstance().finishDeviceUpdate();
                 } catch (JSONException e1) {
                     e1.printStackTrace();
