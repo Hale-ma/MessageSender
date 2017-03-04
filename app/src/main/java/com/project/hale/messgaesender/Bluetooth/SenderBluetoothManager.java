@@ -145,7 +145,6 @@ public class SenderBluetoothManager {
 
         }
         ja.put(SenderWifiManager.getMacAddr() + "|" + getbtMAC() + "|0");//itself
-
         return ja;
     }
 

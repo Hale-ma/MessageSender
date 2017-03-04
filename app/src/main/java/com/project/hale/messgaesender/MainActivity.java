@@ -68,7 +68,6 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     @Override
     public void onFragmentInteraction(SenderDevice device) {
         Log.d("Sender GUI", "onclick - " + device.wifiAddress);
-        device.newMsg=0;
         Intent intent = new Intent(MainActivity.this, ChatActivity.class);
         Bundle bundle = new Bundle();
         bundle.putString("MAC", device.wifiAddress);

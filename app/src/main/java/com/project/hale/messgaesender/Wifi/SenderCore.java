@@ -121,8 +121,8 @@ public class SenderCore {
     public void send_by_BT_neighbour(String sorWiFi, String tarWiFi, String data) {
         Log.d("SenderCore", wbMap.get(tarWiFi) + " " + wbMap.get(tarWiFi).nearestaddress);
         SenderDevice sd = wbMap.get(wbMap.get(tarWiFi).nearestaddress);
-        if(sd==null){
-            Log.d("SenderCore","send_by_BT_neighbour:FAILED:Can't find BT address of "+tarWiFi);
+        if (sd == null) {
+            Log.d("SenderCore", "send_by_BT_neighbour:FAILED:Can't find BT address of " + tarWiFi);
             send_by_Wifi(sorWiFi, tarWiFi, data);
             onSuccess();
             return;
@@ -182,6 +182,19 @@ public class SenderCore {
     public void onSuccess() {
         Log.d("SenderCore", "onSuccess():" + connectionType);
         isSending = false;
+        if (connectionType == DIRECT) {//if can send message directly by bluetooth, it means the distance between them is 1.
+            SenderDevice sd = wbMap.get(nowSending[1]);
+            if(sd.distance!=1){
+                sd.distance = 1;
+                sd.nearestaddress = nowSending[1];
+                wbMap.put(sd.wifiAddress, sd);
+                startupdateDeviceInformation();
+                editor.putString(sd.wifiAddress, sd.getdetail());
+                finishDeviceUpdate();
+            }
+
+
+        }
         if (!cacheMessage.isEmpty()) {
             String[] temp = cacheMessage.peek();
             send_t(temp[0], temp[1], temp[2]);

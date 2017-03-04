@@ -151,8 +151,14 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
+    public void onPause() {
+        SenderCore.getsInstance().wbMap.get(Macadd).newMsg = 0;
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
         mainDB.close();
-        super.onDestroy();
+        super.onStop();
     }
 }
