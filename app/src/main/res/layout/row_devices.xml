@@ -1,32 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="?android:attr/listPreferredItemHeight"
     android:background="?android:attr/activatedBackgroundIndicator"
     android:padding="6dip">
+
     <ImageView
         android:id="@+id/icon"
-        android:layout_width="wrap_content"
-        android:layout_height="fill_parent"
+        android:layout_width="50dp"
+        android:layout_height="60dp"
         android:layout_marginRight="2dip"
         android:src="@mipmap/ic_launcher" />
+
+    <TextView
+        android:id="@+id/msg_count"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:gravity="center"
+        android:text="1"
+        android:textColor="#ffffffff"
+        android:textSize="10.0dip"
+        android:background="@drawable/newmegicon"
+        tools:ignore="HardcodedText" />
+
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="0dip"
+        android:layout_height="fill_parent"
         android:layout_weight="1"
-        android:layout_height="fill_parent">
+        android:orientation="vertical">
+
         <TextView
             android:id="@+id/device_name"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_height="2dp"
             android:layout_weight="1"
             android:gravity="center_vertical" />
+
         <TextView
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:id="@+id/device_details"
+            android:layout_width="wrap_content"
+            android:layout_height="5dp"
+            android:layout_weight="1"
             android:ellipsize="marquee" />
     </LinearLayout>
+
+
+
 </LinearLayout>

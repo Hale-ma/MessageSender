@@ -6,6 +6,7 @@ public class SenderDevice {
     public String wifiAddress, btaddress, nearestaddress;
     public int distance = 0;
     public String time = "";
+    public int newMsg=0;
 
     /**
      * Construct a new SenderDevice

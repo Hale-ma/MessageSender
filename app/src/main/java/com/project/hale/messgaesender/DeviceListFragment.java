@@ -1,6 +1,7 @@
 package com.project.hale.messgaesender;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
@@ -165,11 +166,23 @@ public class DeviceListFragment extends ListFragment {
             if (device != null) {
                 TextView top = (TextView) v.findViewById(R.id.device_name);
                 TextView bottom = (TextView) v.findViewById(R.id.device_details);
+                TextView newMsg=(TextView)v.findViewById(R.id.msg_count);
                 if (top != null) {
                     top.setText(device.toString() + " dis:" + device.distance);
                 }
                 if (bottom != null) {
                     bottom.setText(device.time + " " + ((device.btaddress.compareTo("UNKNOWN")==0) ? ("\nNEAREST:" + device.nearestaddress) : ("\nBLUETOOTH:" + device.btaddress)));
+                }
+                if (newMsg != null) {
+
+                    if(device.newMsg==0){
+                        newMsg.setBackgroundResource(R.drawable.nomegicon);
+                        //hide the hint
+                    }else {
+                        newMsg.setText(device.newMsg+"");
+                        newMsg.setBackgroundResource(R.drawable.newmegicon);
+
+                    }
                 }
             }
             return v;

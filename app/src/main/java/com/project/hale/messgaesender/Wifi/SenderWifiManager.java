@@ -51,7 +51,7 @@ public class SenderWifiManager implements SalutDataCallback {
     private Handler d_handler = new Handler();
     private Handler status_handler;
 
-    private int SELF_CHECK_INTERVAL = 20000;
+    private int SELF_CHECK_INTERVAL = 40000;
     private int WIFI_ENABLE_INTERVAL = 3000;
     private int WIFI_DISABLE_INTERVAL = 1500;
 
@@ -69,7 +69,7 @@ public class SenderWifiManager implements SalutDataCallback {
         this.mainDB = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
         this.context = context;
         this.preferences = preferences;
-        SELF_CHECK_INTERVAL = preferences.getInt("checkinterval", 20000);
+        SELF_CHECK_INTERVAL = preferences.getInt("checkinterval", 40000);
         WIFI_ENABLE_INTERVAL = preferences.getInt("enable", 3000);
         WIFI_DISABLE_INTERVAL = preferences.getInt("disable", 1500);
         mainDB.execSQL("CREATE TABLE IF NOT EXISTS msg(sor char(64),tar char(64),time char(64),msg char(255))");

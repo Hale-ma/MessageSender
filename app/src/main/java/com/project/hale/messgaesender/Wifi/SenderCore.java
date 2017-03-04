@@ -121,6 +121,12 @@ public class SenderCore {
     public void send_by_BT_neighbour(String sorWiFi, String tarWiFi, String data) {
         Log.d("SenderCore", wbMap.get(tarWiFi) + " " + wbMap.get(tarWiFi).nearestaddress);
         SenderDevice sd = wbMap.get(wbMap.get(tarWiFi).nearestaddress);
+        if(sd==null){
+            Log.d("SenderCore","send_by_BT_neighbour:FAILED:Can't find BT address of "+tarWiFi);
+            send_by_Wifi(sorWiFi, tarWiFi, data);
+            onSuccess();
+            return;
+        }
         Log.d("SenderCore", "send_by_BT_neighbour:" + sorWiFi + "=>" + tarWiFi + "(" + sd.btaddress + "):" + data);
 
         if (sd.btaddress.compareTo("UNKNOWN") != 0) { //know the bt address
@@ -152,6 +158,8 @@ public class SenderCore {
                 if (msg_handler != null) {
                     msg_handler.handleMessage(new Message());
                 }
+                wbMap.get(sorWiFi).newMsg++;
+                refeshDeviceList();
             } else {//i am not the target
                 Log.d("SenderCore", "prase Data: I need to route the messgae:" + data + "from " + sorWiFi + " when " + time);
                 if (sorWiFi.compareTo(SenderWifiManager.getInstance().getMacAddr()) != 0) {// do not "route" the message from itself
@@ -238,7 +246,7 @@ public class SenderCore {
         //update the neibghour node
         SenderDevice sd = new SenderDevice(wifiAddress, wifiAddress, btAddress, 1, getTime());
         wbMap.put(wifiAddress, sd);
-
+        editor.putString(wifiAddress, sd.getdetail());
         if (wbMap.containsKey(from)) {
             SenderDevice temp = wbMap.get(from);
             if (temp.nearestaddress.compareTo(wifiAddress) != 0 && temp.distance >= 100) {
