@@ -36,13 +36,20 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/my_wifi_detail"
+                android:id="@+id/my_detail"
                 android:layout_width="fill_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:ellipsize="marquee"
-                android:singleLine="true"
                 android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/my_bt_detail"
+                android:layout_width="fill_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:ellipsize="marquee"
+                android:textColor="@color/colorPrimaryDark" />
         </LinearLayout>
     </LinearLayout>
 
@@ -50,7 +57,8 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:text="@string/label_peers" />
+        android:text="@string/label_peers"
+        android:textColor="@android:color/black" />
 
     <View
         android:layout_width="fill_parent"

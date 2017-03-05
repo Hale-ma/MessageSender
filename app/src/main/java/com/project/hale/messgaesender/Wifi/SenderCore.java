@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -33,7 +34,7 @@ public class SenderCore {
     //Hash map store the
     public static String[] paired_device;
     public HashMap<String, SenderDevice> wbMap = new HashMap<>();
-    private Handler msg_handler;
+    private Handler msg_handler,status_handler;
     private SharedPreferences preferences;
     private SharedPreferences.Editor editor;
     public DeviceListFragment dlf;
@@ -223,6 +224,15 @@ public class SenderCore {
             String[] temp = cacheMessage.peek();
             send_t(temp[0], temp[1], temp[2]);
         }
+        Bundle messageBundle = new Bundle();
+        messageBundle.putString("status", SenderWifiManager.getInstance().nowstatus + "");
+        messageBundle.putString("queue", cacheMessage.size() + "");
+        messageBundle.putString("bt", SenderBluetoothManager.getInstance().connectedMAC + "");
+        Message message = new Message();
+        message.setData(messageBundle);
+        if (status_handler != null) {
+            status_handler.sendMessage(message);
+        }
     }
 
     public void send_by_Wifi(String sorWiFi, String tarWiFi, String data) {
@@ -346,6 +356,10 @@ public class SenderCore {
         }
         Log.d("SenderCore", "getWifiMac return X :" + btMac);
         return "UNKNOWN";
+    }
+
+    public void setStatus_handler(Handler status_handler) {
+        this.status_handler = status_handler;
     }
 
 

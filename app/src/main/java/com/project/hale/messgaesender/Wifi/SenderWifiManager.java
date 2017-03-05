@@ -47,7 +47,7 @@ public class SenderWifiManager implements SalutDataCallback {
     private Context context;
 
     private SalutServiceData cachedata = new SalutServiceData("loc|all|" + getTime(), 52391, "x", SenderBluetoothManager.getInstance().getbtMAC());
-    private WifiStatus nowstatus = WifiStatus.DEFAULT;
+    public WifiStatus nowstatus = WifiStatus.DEFAULT;
     private String cache_tar, cache_msg, cache_tar_ex, cache_msg_ex;
 
 
@@ -238,14 +238,7 @@ public class SenderWifiManager implements SalutDataCallback {
             }
 
         }
-        Bundle messageBundle = new Bundle();
-        messageBundle.putString("msg", nowstatus + "");
 
-        Message message = new Message();
-        message.setData(messageBundle);
-        if (status_handler != null) {
-            status_handler.sendMessage(message);
-        }
         Log.d("Salut", before + " => " + nowstatus);
 
         cachedata = sd;//
@@ -367,9 +360,7 @@ public class SenderWifiManager implements SalutDataCallback {
     }
 
 
-    public void setStatus_handler(Handler status_handler) {
-        this.status_handler = status_handler;
-    }
+
 
     public void boardcastNeighbourhood() {
         sendmsg("all", SenderCore.getsInstance().neighbour_message(false).toString());

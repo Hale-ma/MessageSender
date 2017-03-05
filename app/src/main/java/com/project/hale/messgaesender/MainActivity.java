@@ -32,8 +32,8 @@ import java.util.Date;
 public class MainActivity extends AppCompatActivity implements DeviceListFragment.OnFragmentInteractionListener, SalutDataCallback {
     Salut snetwork;
     DeviceListFragment dfra;
-    TextView wifistatus;
-    Handler wifistatusUpdateHandler;
+    TextView detail_wifi,detail_bt;
+    Handler statusUpdateHandler;
     SharedPreferences preferences ;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,21 +47,26 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
         setContentView(R.layout.activity_main);
 
         //init wifi
-        wifistatus = (TextView) findViewById(R.id.my_wifi_detail);
+
         initWifi();
-        wifistatusUpdateHandler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                String status = msg.getData().getString("msg");
-                wifistatus.setText(status);
-            }
-        };
-        SenderWifiManager.getInstance().setStatus_handler(wifistatusUpdateHandler);
+
         //init core
+        detail_wifi = (TextView) findViewById(R.id.my_detail);
+        detail_bt = (TextView) findViewById(R.id.my_bt_detail);
         preferences = getSharedPreferences("user-around", Context.MODE_PRIVATE);
         dfra = (DeviceListFragment) getSupportFragmentManager().findFragmentById(R.id.frag_list);
         SenderCore.getsInstance().init(this,preferences,dfra);
-
+        statusUpdateHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                String status = msg.getData().getString("status");
+                String bt = msg.getData().getString("bt");
+                String queue = msg.getData().getString("queue");
+                detail_wifi.setText("Message in Queue:"+queue+" Wi-Fi:"+status);
+                detail_bt.setText("BT connection:"+bt);
+            }
+        };
+        SenderCore.getsInstance().setStatus_handler(statusUpdateHandler);
 
 
     }
