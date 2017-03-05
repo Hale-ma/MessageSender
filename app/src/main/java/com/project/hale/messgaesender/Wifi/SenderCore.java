@@ -11,6 +11,8 @@ import android.util.Log;
 import com.project.hale.messgaesender.Bluetooth.SenderBluetoothManager;
 import com.project.hale.messgaesender.DeviceListFragment;
 
+import org.json.JSONArray;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -169,6 +171,28 @@ public class SenderCore {
         }
     }
 
+    public JSONArray neighbour_message(boolean btuse) {
+        JSONArray ja = new JSONArray();
+
+        Iterator<Map.Entry<String, SenderDevice>> it = SenderCore.getsInstance().wbMap.entrySet().iterator();
+        int i=0;
+        while (it.hasNext()) {
+            Map.Entry<String, SenderDevice> e = it.next();
+            SenderDevice sd = e.getValue();
+            if (sd.btaddress != SenderBluetoothManager.getInstance().connectedMAC) {
+                ja.put(sd.wifiAddress + "|" + sd.btaddress + "|" + sd.distance);
+            }
+            i++;
+            if(!btuse&&i>5){
+                break;//wifi boradcast can only send 6 nodes informatoin at a time.
+            }
+        }
+        if (btuse) {
+            ja.put(SenderWifiManager.getMacAddr() + "|" + SenderBluetoothManager.getInstance().getbtMAC() + "|0");//itself
+        }
+        return ja;
+    }
+
     public void onBTfaild() {
         Log.d("SenderCore", "onBTfaild():" + connectionType);
         if (connectionType == DIRECT) {
@@ -184,7 +208,7 @@ public class SenderCore {
         isSending = false;
         if (connectionType == DIRECT) {//if can send message directly by bluetooth, it means the distance between them is 1.
             SenderDevice sd = wbMap.get(nowSending[1]);
-            if(sd.distance!=1){
+            if (sd.distance != 1) {
                 sd.distance = 1;
                 sd.nearestaddress = nowSending[1];
                 wbMap.put(sd.wifiAddress, sd);

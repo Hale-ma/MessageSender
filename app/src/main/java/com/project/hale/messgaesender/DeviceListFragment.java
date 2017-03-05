@@ -5,11 +5,14 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -67,6 +70,7 @@ public class DeviceListFragment extends ListFragment {
         super.onActivityCreated(savedInstanceState);
         // set list adapter with row layout to adapter data
         this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, SenderCore.getsInstance().getDeviceList()));
+
     }
 
     @Override
@@ -100,6 +104,8 @@ public class DeviceListFragment extends ListFragment {
         SenderDevice device = (SenderDevice) getListAdapter().getItem(position);
         mListener.onFragmentInteraction(device);
     }
+
+
 
     @Override
     public void onAttach(Context context) {
@@ -165,13 +171,21 @@ public class DeviceListFragment extends ListFragment {
             SenderDevice device = items.get(position);
             if (device != null) {
                 TextView top = (TextView) v.findViewById(R.id.device_name);
-                TextView bottom = (TextView) v.findViewById(R.id.device_details);
+                TextView time = (TextView) v.findViewById(R.id.device_time);
                 TextView newMsg=(TextView)v.findViewById(R.id.msg_count);
+                TextView bt=(TextView) v.findViewById(R.id.device_bt);
+                TextView nearest=(TextView) v.findViewById(R.id.device_nearest);
                 if (top != null) {
                     top.setText(device.toString() + " dis:" + device.distance);
                 }
-                if (bottom != null) {
-                    bottom.setText(device.time + " " + ((device.btaddress.compareTo("UNKNOWN")==0) ? ("\nNEAREST:" + device.nearestaddress) : ("\nBLUETOOTH:" + device.btaddress)));
+                if(time!=null){
+                    time.setText(device.time);
+                }
+                if (bt != null) {
+                    bt.setText("BLUETOOTH:" + device.btaddress);
+                }
+                if(nearest!=null){
+                    nearest.setText("NEAREST:"+device.nearestaddress);
                 }
                 if (newMsg != null) {
 
@@ -185,8 +199,11 @@ public class DeviceListFragment extends ListFragment {
                     }
                 }
             }
+
             return v;
         }
+
+
     }
 
 

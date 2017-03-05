@@ -28,7 +28,7 @@ public class SenderBluetoothManager {
     private static SenderBluetoothManager sInstance = new SenderBluetoothManager();
     private String[] paired_device;
     public boolean isInit = false;
-    private String connectedMAC = null;
+    public String connectedMAC = null;
     private String tarBT;
     private String cacheMAC = "";
     private JSONObject cachedata;
@@ -69,7 +69,7 @@ public class SenderBluetoothManager {
                 if (cacheMAC.compareTo(connectedMAC) == 0) {
                     Log.d("bt", "connected, sending..");
                     //when the first time it connect to a bluetooth device, it send it neighbour information to the node, in this way ,two device will exchange the neighbour information when connected
-                    bluetoothSPP.send(neighbour_message().toString(), true);
+                    bluetoothSPP.send(SenderCore.getsInstance().neighbour_message(true).toString(), true);
                     bluetoothSPP.send(cachedata.toString(), true);
                     SenderCore.getsInstance().onSuccess();
                     // bluetoothSPP.disconnect();
@@ -131,23 +131,6 @@ public class SenderBluetoothManager {
         }
         return jo;
     }
-
-    private JSONArray neighbour_message() {
-        JSONArray ja = new JSONArray();
-
-        Iterator<Map.Entry<String, SenderDevice>> it = SenderCore.getsInstance().wbMap.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<String, SenderDevice> e = it.next();
-            SenderDevice sd = e.getValue();
-            if (sd.btaddress != connectedMAC) {
-                ja.put(sd.wifiAddress + "|" + sd.btaddress + "|" + sd.distance);
-            }
-
-        }
-        ja.put(SenderWifiManager.getMacAddr() + "|" + getbtMAC() + "|0");//itself
-        return ja;
-    }
-
 
     public String getbtMAC() {
         return tarBT == null ? android.provider.Settings.Secure.getString(context.getContentResolver(), "bluetooth_address") : tarBT;

@@ -63,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
         SenderCore.getsInstance().init(this,preferences,dfra);
 
 
+
     }
 
     @Override

@@ -18,6 +18,9 @@ import com.peak.salut.SalutDevice;
 import com.peak.salut.SalutServiceData;
 import com.project.hale.messgaesender.Bluetooth.SenderBluetoothManager;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import java.net.NetworkInterface;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -283,8 +286,23 @@ public class SenderWifiManager implements SalutDataCallback {
             if (splited[2].compareTo(getMacAddr()) == 0) {
                 SenderCore.getsInstance().updateDeviceInformation_bymessage(splited[0], splited[5], splited[1]);
             }
-            if(splited[2].compareTo("all")!=0) {
+            if (splited[2].compareTo("all") != 0) {
                 SenderCore.getsInstance().onReceive(splited[1], splited[2], splited[3], splited[4]);
+            } else {
+                String message = splited[3];
+                SenderCore.getsInstance().startupdateDeviceInformation();
+                try {
+                    JSONArray ja = new JSONArray(message);
+                    for (int i = 0; i < ja.length(); i++) {
+                        String temp = ja.getString(i);
+                        String splited_i[] = temp.split("\\|");
+                        SenderCore.getsInstance().updateDeviceInformation_bySharing(splited_i[0], splited_i[1], Integer.parseInt(splited_i[2]), splited[0]);
+
+                    }
+                } catch (JSONException e) {
+                    //just receive a empty message
+                }
+                SenderCore.getsInstance().finishDeviceUpdate();
             }
             snetwork.rawData = new ArrayList<String>();
         }
@@ -351,5 +369,9 @@ public class SenderWifiManager implements SalutDataCallback {
 
     public void setStatus_handler(Handler status_handler) {
         this.status_handler = status_handler;
+    }
+
+    public void boardcastNeighbourhood() {
+        sendmsg("all", SenderCore.getsInstance().neighbour_message(false).toString());
     }
 }
