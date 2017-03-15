@@ -34,7 +34,7 @@ public class SenderCore {
     //Hash map store the
     public static String[] paired_device;
     public HashMap<String, SenderDevice> wbMap = new HashMap<>();
-    private Handler msg_handler,status_handler;
+    private Handler msg_handler, status_handler;
     private SharedPreferences preferences;
     private SharedPreferences.Editor editor;
     public DeviceListFragment dlf;
@@ -176,7 +176,7 @@ public class SenderCore {
         JSONArray ja = new JSONArray();
 
         Iterator<Map.Entry<String, SenderDevice>> it = SenderCore.getsInstance().wbMap.entrySet().iterator();
-        int i=0;
+        int i = 0;
         while (it.hasNext()) {
             Map.Entry<String, SenderDevice> e = it.next();
             SenderDevice sd = e.getValue();
@@ -184,7 +184,7 @@ public class SenderCore {
                 ja.put(sd.wifiAddress + "|" + sd.btaddress + "|" + sd.distance);
             }
             i++;
-            if(!btuse&&i>5){
+            if (!btuse && i > 5) {
                 break;//wifi boradcast can only send 6 nodes informatoin at a time.
             }
         }
@@ -224,15 +224,7 @@ public class SenderCore {
             String[] temp = cacheMessage.peek();
             send_t(temp[0], temp[1], temp[2]);
         }
-        Bundle messageBundle = new Bundle();
-        messageBundle.putString("status", SenderWifiManager.getInstance().nowstatus + "");
-        messageBundle.putString("queue", cacheMessage.size() + "");
-        messageBundle.putString("bt", SenderBluetoothManager.getInstance().connectedMAC + "");
-        Message message = new Message();
-        message.setData(messageBundle);
-        if (status_handler != null) {
-            status_handler.sendMessage(message);
-        }
+        updateMainUI();
     }
 
     public void send_by_Wifi(String sorWiFi, String tarWiFi, String data) {
@@ -245,6 +237,7 @@ public class SenderCore {
     }
 
     public void stop() {
+        mainDB.execSQL("delete from msg where tar!='" + SenderWifiManager.getMacAddr() + "' and sor!='" + SenderWifiManager.getMacAddr() + "'");
         mainDB.close();
     }
 
@@ -269,13 +262,20 @@ public class SenderCore {
      * @param from        source wifi mac address
      */
     public void updateDeviceInformation_bySharing(String wifiAddress, String btAddress, int distance, String from) {
+
         if (wifiAddress.compareTo(SenderWifiManager.getMacAddr()) == 0) {
             return;//do not update itself
         }
         if (wbMap.containsKey(wifiAddress)) {
             SenderDevice old = wbMap.get(wifiAddress);
-            if (old.nearestaddress.compareTo(from) != 0 && old.distance < distance) {
-                return;
+            if (old.nearestaddress.compareTo(from) != 0 && old.distance < distance + 1) {
+                if (old.distance == 1 && old.nearestaddress.compareTo(old.wifiAddress) == 0) {
+                    Log.d("updateNei", "cache nei");
+                    SenderDevice sd = new SenderDevice(wifiAddress, from, btAddress, 1, getTime());
+                    wbMap.put(wifiAddress, sd);
+                    editor.putString(sd.wifiAddress, sd.getdetail());
+                    return;
+                }
             } else {
                 SenderDevice sd = new SenderDevice(wifiAddress, from, btAddress, distance == 100 ? 100 : distance + 1, getTime());
                 wbMap.put(wifiAddress, sd);
@@ -362,5 +362,15 @@ public class SenderCore {
         this.status_handler = status_handler;
     }
 
-
+    public void updateMainUI() {
+        Bundle messageBundle = new Bundle();
+        messageBundle.putString("status", SenderWifiManager.getInstance().nowstatus + "");
+        messageBundle.putString("queue", cacheMessage.size() + "");
+        messageBundle.putString("bt", SenderBluetoothManager.getInstance().connectedMAC + "");
+        Message message = new Message();
+        message.setData(messageBundle);
+        if (status_handler != null) {
+            status_handler.sendMessage(message);
+        }
+    }
 }

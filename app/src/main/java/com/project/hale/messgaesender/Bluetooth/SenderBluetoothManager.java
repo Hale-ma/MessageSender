@@ -73,12 +73,14 @@ public class SenderBluetoothManager {
                     bluetoothSPP.send(cachedata.toString(), true);
                     SenderCore.getsInstance().onSuccess();
                     // bluetoothSPP.disconnect();
+                    SenderCore.getsInstance().updateMainUI();
                 }
             }
 
             public void onDeviceDisconnected() {
                 Log.d("bt", "onDeviceDisconnected");
                 connectedMAC = null;
+                SenderCore.getsInstance().updateMainUI();
             }
 
             public void onDeviceConnectionFailed() {

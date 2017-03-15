@@ -90,6 +90,8 @@ public class ChatActivity extends AppCompatActivity {
                         input_text.setError("Message can not be too long!");
                     } else if (newMsg.length() == 0) {
                         input_text.setError("Can not send empty message!");
+                    } else if (newMsg.contains("'") || newMsg.contains("|")) {
+                        input_text.setError("Message contains invalid char");
                     } else {
                         input_text.setText("");
                         SenderCore.getsInstance().send(SenderWifiManager.getMacAddr(), Macadd, newMsg);

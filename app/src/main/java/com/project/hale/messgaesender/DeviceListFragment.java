@@ -125,6 +125,10 @@ public class DeviceListFragment extends ListFragment {
     }
 
     public void updateUI() {
+        if(getActivity()==null){
+            Log.d("updateUI", "faild");
+            return;
+        }
         this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, SenderCore.getsInstance().getDeviceList()));
         //  this.setListAdapter(new SenderDeviceListAdapter(getActivity(), R.layout.row_devices, slist));
         Log.d("updateUI", "updateUI");
