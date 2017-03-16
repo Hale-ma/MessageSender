@@ -106,7 +106,8 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
 
     private void initBluetooth() {
         if (!SenderBluetoothManager.getInstance().isInit) {
-            SenderBluetoothManager.getInstance().init(this);
+            SharedPreferences preferences = getSharedPreferences("SenderSettings", Context.MODE_PRIVATE);
+            SenderBluetoothManager.getInstance().init(this,preferences);
         }
     }
 

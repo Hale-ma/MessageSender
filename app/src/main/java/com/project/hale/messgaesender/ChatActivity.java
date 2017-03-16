@@ -40,11 +40,9 @@ public class ChatActivity extends AppCompatActivity {
         input_text = (EditText) findViewById(R.id.edit_input);
         input_text.setOnKeyListener(new inputKeyListener());
         msglist = (ListView) findViewById(R.id.msglist);
-        mainDB = SQLiteDatabase.openOrCreateDatabase(this.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
-        mainDB.execSQL("CREATE TABLE IF NOT EXISTS msg(sor char(64),tar char(64),time char(64),msg char(255))");
-        refreshmsglist();
-        chatMsgAdapter = new chatMsgAdapter(this, R.id.msglist, chatmsgList);
-        msglist.setAdapter(chatMsgAdapter);
+//        mainDB = SQLiteDatabase.openOrCreateDatabase(this.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
+//        mainDB.execSQL("CREATE TABLE IF NOT EXISTS msg(sor char(64),tar char(64),time char(64),msg char(255))");
+
         mUpdateHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
@@ -58,6 +56,16 @@ public class ChatActivity extends AppCompatActivity {
 
         SenderCore.getsInstance().setMsg_handler(mUpdateHandler);
 
+
+    }
+
+    protected void onResume(){
+        super.onResume();
+        mainDB = SQLiteDatabase.openOrCreateDatabase(this.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
+        mainDB.execSQL("CREATE TABLE IF NOT EXISTS msg(sor char(64),tar char(64),time char(64),msg char(255))");
+        refreshmsglist();
+        chatMsgAdapter = new chatMsgAdapter(this, R.id.msglist, chatmsgList);
+        msglist.setAdapter(chatMsgAdapter);
 
     }
 

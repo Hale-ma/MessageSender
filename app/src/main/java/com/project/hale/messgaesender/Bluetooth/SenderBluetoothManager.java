@@ -1,6 +1,7 @@
 package com.project.hale.messgaesender.Bluetooth;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
@@ -32,7 +33,9 @@ public class SenderBluetoothManager {
     private String tarBT;
     private String cacheMAC = "";
     private JSONObject cachedata;
-
+    private int AUTO_DISCONNECT_INTERVAL=10000;
+    private Handler d_handler=new Handler();
+    private SharedPreferences preferences;
 
     private SenderBluetoothManager() {
 
@@ -42,9 +45,11 @@ public class SenderBluetoothManager {
         return sInstance;
     }
 
-    public void init(Context c) {
+    public void init(Context c,SharedPreferences pre) {
         this.context = c;
         tarBT = android.provider.Settings.Secure.getString(context.getContentResolver(), "bluetooth_address");
+        preferences = pre;
+        AUTO_DISCONNECT_INTERVAL = preferences.getInt("bt_interval", 10000);
         bluetoothSPP = new BluetoothSPP(context);
         if (!bluetoothSPP.isBluetoothEnabled()) {
             bluetoothSPP.enable();
@@ -75,6 +80,7 @@ public class SenderBluetoothManager {
                     // bluetoothSPP.disconnect();
                     SenderCore.getsInstance().updateMainUI();
                 }
+                d_handler.postDelayed(autoStopBTconnection, AUTO_DISCONNECT_INTERVAL);
             }
 
             public void onDeviceDisconnected() {
@@ -149,6 +155,10 @@ public class SenderBluetoothManager {
             try {
                 JSONObject jo = new JSONObject(message);
                 SenderCore.getsInstance().onReceive(jo.getString("sor"), jo.getString("tar"), jo.getString("time"), jo.getString("data"));
+                if(jo.getString("tar").compareTo(SenderWifiManager.getMacAddr())==0){
+                    d_handler.removeCallbacks(autoStopBTconnection);
+                    d_handler.postDelayed(autoStopBTconnection, AUTO_DISCONNECT_INTERVAL);
+                }
             } catch (JSONException e) {
                 try {
                     SenderCore.getsInstance().startupdateDeviceInformation();
@@ -174,6 +184,12 @@ public class SenderBluetoothManager {
         bluetoothSPP.disconnect();
         bluetoothSPP.stopService();
     }
-
+    private Runnable autoStopBTconnection = new Runnable() {
+        @Override
+        public void run() {
+            bluetoothSPP.disconnect();
+            connectedMAC=null;
+        }
+    };
 
 }

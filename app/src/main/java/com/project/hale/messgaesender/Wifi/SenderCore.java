@@ -197,6 +197,21 @@ public class SenderCore {
     public void onBTfaild() {
         Log.d("SenderCore", "onBTfaild():" + connectionType);
         if (connectionType == DIRECT) {
+            if (wbMap.get(nowSending[1]).distance == 1) {
+                SenderDevice sd = wbMap.get(nowSending[1]);
+                if (sd.nearestaddress.compareTo(sd.wifiAddress) != 0) {
+                    SenderDevice nei = wbMap.get(sd.nearestaddress);
+                    if (nei != null) {
+                        sd.distance = nei.distance + 1;
+                        wbMap.put(sd.wifiAddress, sd);
+                        startupdateDeviceInformation();
+                        editor.putString(sd.wifiAddress, sd.getdetail());
+                        finishDeviceUpdate();
+                    }
+
+                }
+
+            }
             send_by_BT_neighbour(nowSending[0], nowSending[1], nowSending[2]);
         } else {
             send_by_Wifi(nowSending[0], nowSending[1], nowSending[2]);
@@ -268,15 +283,16 @@ public class SenderCore {
         }
         if (wbMap.containsKey(wifiAddress)) {
             SenderDevice old = wbMap.get(wifiAddress);
-            if (old.nearestaddress.compareTo(from) != 0 && old.distance < distance + 1) {
+            if (old.nearestaddress.compareTo(from) != 0 || old.distance < distance + 1) {
                 if (old.distance == 1 && old.nearestaddress.compareTo(old.wifiAddress) == 0) {
                     Log.d("updateNei", "cache nei");
                     SenderDevice sd = new SenderDevice(wifiAddress, from, btAddress, 1, getTime());
                     wbMap.put(wifiAddress, sd);
                     editor.putString(sd.wifiAddress, sd.getdetail());
-                    return;
                 }
+                return;
             } else {
+                Log.d("updateNei",old.distance+" "+(distance + 1));
                 SenderDevice sd = new SenderDevice(wifiAddress, from, btAddress, distance == 100 ? 100 : distance + 1, getTime());
                 wbMap.put(wifiAddress, sd);
                 editor.putString(sd.wifiAddress, sd.getdetail());
