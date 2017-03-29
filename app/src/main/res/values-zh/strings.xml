@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">MessgaeSender</string>
-    <string name="delete_db">清除本机数据</string>
+    <string name="app_name">周边消息发送者</string>
+    <string name="delete_db">删除聊天记录</string>
     <string name="empty_message">正在搜索附近的设备...</string>
     <string name="label_me">我</string>
     <string name="label_peers">附近设备</string>
     <string name="success">成功</string>
+    <string name="bt_interval">自动切断蓝牙连接时间</string>
+    <string name="check_interval">检查Wi-Fi广播故障间隔</string>
+    <string name="delete_cache">删除缓存信息</string>
+    <string name="wifi_off">关闭Wi-Fi所需时间</string>
+    <string name="wifi_on">开启Wi-Fi所需时间</string>
+    <string name="save_pf">保存设置</string>
 </resources>

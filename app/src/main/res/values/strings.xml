@@ -10,4 +10,5 @@
     <string name="wifi_on">wifi enable time</string>
     <string name="wifi_off">wifi disable time</string>
     <string name="bt_interval">auto disconnect bluetooth connection interval:</string>
+    <string name="save_pf">SAVE</string>
 </resources>

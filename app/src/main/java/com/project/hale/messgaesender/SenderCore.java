@@ -164,6 +164,20 @@ public class SenderCore {
                 }
                 wbMap.get(sorWiFi).newMsg++;
                 refeshDeviceList();
+                //ping
+                String[] sp = data.split(" ");
+                if (sp[0].compareTo("-ping") == 0) {
+                    if (sp.length <= 1) {
+                        send(SenderWifiManager.getMacAddr(), sorWiFi, "ping reply from" + SenderWifiManager.getMacAddr());
+                    } else {
+                        if (sp[1].compareTo("-t") == 0) {
+                            int count = Integer.parseInt(sp[2]) + 1;
+                            send(SenderWifiManager.getMacAddr(), sorWiFi, "-ping -t " + count + " messages");
+                        } else {
+                            send(SenderWifiManager.getMacAddr(), sorWiFi, "ping reply from" + SenderWifiManager.getMacAddr());
+                        }
+                    }
+                }
             } else {//i am not the target
                 Log.d("SenderCore", "prase Data: I need to route the messgae:" + data + "from " + sorWiFi + " when " + time);
                 if (sorWiFi.compareTo(SenderWifiManager.getInstance().getMacAddr()) != 0) {// do not "route" the message from itself
@@ -293,7 +307,7 @@ public class SenderCore {
                 }
                 return;
             } else {
-                Log.d("updateNei",old.distance+" "+(distance + 1));
+                Log.d("updateNei", old.distance + " " + (distance + 1));
                 SenderDevice sd = new SenderDevice(wifiAddress, from, btAddress, distance == 100 ? 100 : distance + 1, getTime());
                 wbMap.put(wifiAddress, sd);
                 editor.putString(sd.wifiAddress, sd.getdetail());

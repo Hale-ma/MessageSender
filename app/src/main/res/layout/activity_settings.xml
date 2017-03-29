@@ -74,13 +74,13 @@
         android:singleLine="true" />
 
     <Button
-        android:text="Save"
+        android:id="@+id/save_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/save_button"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:text="@string/save_pf" />
 
     <Button
         android:text="@string/delete_db"
