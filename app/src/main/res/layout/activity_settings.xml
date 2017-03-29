@@ -42,26 +42,26 @@
         android:layout_alignParentEnd="true" />
 
     <TextView
-        android:text="Checkinterval"
+        android:id="@+id/Checkinterval_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/Checkinterval_text"
-        android:textSize="18sp"
-        android:textColor="@android:color/black"
-        android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
-        android:layout_toStartOf="@+id/CheckInterval_edit" />
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@+id/CheckInterval_edit"
+        android:text="@string/check_interval"
+        android:textColor="@android:color/black"
+        android:textSize="18sp" />
 
     <TextView
-        android:text="WiFi enable time"
+        android:id="@+id/wifi_enable_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/CheckInterval_edit"
         android:layout_alignParentStart="true"
-        android:id="@+id/wifi_enable_time"
-        android:textSize="18sp"
+        android:layout_below="@+id/CheckInterval_edit"
+        android:layout_toStartOf="@+id/CheckInterval_edit"
+        android:text="@string/wifi_on"
         android:textColor="@android:color/black"
-        android:layout_toStartOf="@+id/CheckInterval_edit" />
+        android:textSize="18sp" />
 
     <EditText
         android:layout_width="80dp"
@@ -89,10 +89,10 @@
         android:id="@+id/cleandb_button"
         android:layout_above="@+id/save_button"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentStart="true"
         android:fontFamily="sans-serif-medium"
         android:background="@android:color/holo_red_dark"
-        android:textColor="@android:color/white" />
+        android:textColor="@android:color/white"
+        android:layout_alignParentStart="true" />
 
     <EditText
         android:layout_width="80dp"
@@ -105,13 +105,22 @@
         android:layout_alignParentEnd="true" />
 
     <TextView
-        android:text="WiFi disable time"
+        android:id="@+id/WiFi_disable_time_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/WiFi_disable_time_text"
-        android:textSize="18sp"
-        android:textColor="@android:color/black"
+        android:layout_alignParentStart="true"
         android:layout_below="@+id/wifi_enable_time_edit"
-        android:layout_alignParentStart="true" />
+        android:text="@string/wifi_off"
+        android:textColor="@android:color/black"
+        android:textSize="18sp" />
+
+    <Button
+        android:id="@+id/clean_cache"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/cleandb_button"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"
+        android:text="@string/delete_cache" />
 
 </RelativeLayout>

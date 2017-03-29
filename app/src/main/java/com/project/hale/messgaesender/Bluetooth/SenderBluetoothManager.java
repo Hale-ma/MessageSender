@@ -6,8 +6,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.project.hale.messgaesender.Wifi.SenderCore;
-import com.project.hale.messgaesender.Wifi.SenderDevice;
+import com.project.hale.messgaesender.SenderCore;
 import com.project.hale.messgaesender.Wifi.SenderWifiManager;
 
 import org.json.JSONArray;
@@ -16,8 +15,6 @@ import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.Map;
 
 import app.akexorcist.bluetotohspp.library.BluetoothSPP;
 import app.akexorcist.bluetotohspp.library.BluetoothState;

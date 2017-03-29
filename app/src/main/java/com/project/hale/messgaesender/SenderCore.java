@@ -1,4 +1,4 @@
-package com.project.hale.messgaesender.Wifi;
+package com.project.hale.messgaesender;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -10,7 +10,8 @@ import android.os.Message;
 import android.util.Log;
 
 import com.project.hale.messgaesender.Bluetooth.SenderBluetoothManager;
-import com.project.hale.messgaesender.DeviceListFragment;
+import com.project.hale.messgaesender.Wifi.SenderDevice;
+import com.project.hale.messgaesender.Wifi.SenderWifiManager;
 
 import org.json.JSONArray;
 
@@ -24,8 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import static com.project.hale.messgaesender.Wifi.SenderCore.connectionType.DIRECT;
-import static com.project.hale.messgaesender.Wifi.SenderCore.connectionType.NEIGHBOUR;
+import static com.project.hale.messgaesender.SenderCore.connectionType.DIRECT;
+import static com.project.hale.messgaesender.SenderCore.connectionType.NEIGHBOUR;
 
 public class SenderCore {
     private static SenderCore sInstance = new SenderCore();
@@ -283,7 +284,7 @@ public class SenderCore {
         }
         if (wbMap.containsKey(wifiAddress)) {
             SenderDevice old = wbMap.get(wifiAddress);
-            if (old.nearestaddress.compareTo(from) != 0 || old.distance < distance + 1) {
+            if (old.nearestaddress.compareTo(from) != 0 || old.distance < distance + 1) {//oldRecord does not cache nearest neighbourhood
                 if (old.distance == 1 && old.nearestaddress.compareTo(old.wifiAddress) == 0) {
                     Log.d("updateNei", "cache nei");
                     SenderDevice sd = new SenderDevice(wifiAddress, from, btAddress, 1, getTime());
@@ -297,7 +298,7 @@ public class SenderCore {
                 wbMap.put(wifiAddress, sd);
                 editor.putString(sd.wifiAddress, sd.getdetail());
             }
-        } else {
+        } else {//node does not exist in my routing table
             SenderDevice sd = new SenderDevice(wifiAddress, from, btAddress, distance == 100 ? 100 : distance + 1, getTime());
             wbMap.put(wifiAddress, sd);
             editor.putString(sd.wifiAddress, sd.getdetail());

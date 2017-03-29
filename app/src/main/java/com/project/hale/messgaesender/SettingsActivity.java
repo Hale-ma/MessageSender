@@ -10,9 +10,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.project.hale.messgaesender.Wifi.SenderWifiManager;
+
 public class SettingsActivity extends AppCompatActivity {
     EditText checkinterval_edit, enable_edit,disable_edit,bt_edit;
-    Button deldb, savesetting;
+    Button deldb, savesetting,delcache;
 
     SQLiteDatabase mainDB;
     SharedPreferences preferences;
@@ -27,6 +29,7 @@ public class SettingsActivity extends AppCompatActivity {
         disable_edit= (EditText) findViewById(R.id.wifi_disable_time_edit);
         bt_edit=(EditText)findViewById(R.id.bt_interval_edit);
         deldb = (Button) findViewById(R.id.cleandb_button);
+        delcache=(Button)findViewById(R.id.clean_cache);
         savesetting = (Button) findViewById(R.id.save_button);
         checkinterval_edit.setText(String.valueOf(preferences.getInt("checkinterval", 20000)));
         enable_edit.setText(String.valueOf(preferences.getInt("enable", 3000)));
@@ -37,6 +40,15 @@ public class SettingsActivity extends AppCompatActivity {
             public void onClick(View view) {
                 mainDB = SQLiteDatabase.openOrCreateDatabase(getApplicationContext().getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
                 mainDB.execSQL("delete from msg");
+                Toast.makeText(getApplicationContext(), getString(R.string.success), Toast.LENGTH_SHORT).show();
+                mainDB.close();
+            }
+        });
+        delcache.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mainDB = SQLiteDatabase.openOrCreateDatabase(getApplicationContext().getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
+                mainDB.execSQL("delete from msg where tar!='" + SenderWifiManager.getMacAddr() + "' and sor!='" + SenderWifiManager.getMacAddr() + "'");
                 Toast.makeText(getApplicationContext(), getString(R.string.success), Toast.LENGTH_SHORT).show();
                 mainDB.close();
             }
@@ -64,6 +76,7 @@ public class SettingsActivity extends AppCompatActivity {
                    editor.putInt("disable", dni);
                    editor.putInt("bt_interval", bti);
                    editor.commit();
+                   finish();
                }
             }
         });

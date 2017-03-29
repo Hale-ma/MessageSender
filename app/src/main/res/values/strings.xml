@@ -2,8 +2,12 @@
     <string name="app_name">MessgaeSender</string>
     <string name="label_me">me</string>
     <string name="label_peers">peers</string>
-    <string name="delete_db">clean local database</string>
+    <string name="delete_db">Clear the chat history</string>
+    <string name="delete_cache">Delete cached message</string>
     <string name="empty_message">searching nearby devices... </string>
     <string name="success">success</string>
+    <string name="check_interval">Wi-Fi check interval</string>
+    <string name="wifi_on">wifi enable time</string>
+    <string name="wifi_off">wifi disable time</string>
     <string name="bt_interval">auto disconnect bluetooth connection interval:</string>
 </resources>

@@ -3,9 +3,7 @@ package com.project.hale.messgaesender.Wifi;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -17,6 +15,7 @@ import com.peak.salut.SalutDataReceiver;
 import com.peak.salut.SalutDevice;
 import com.peak.salut.SalutServiceData;
 import com.project.hale.messgaesender.Bluetooth.SenderBluetoothManager;
+import com.project.hale.messgaesender.SenderCore;
 
 import org.json.JSONArray;
 import org.json.JSONException;
