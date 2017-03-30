@@ -44,6 +44,7 @@ public class SenderCore {
     private Queue<String[]> cacheMessage = new LinkedList<>();
     private boolean isSending = false;
     private String[] nowSending;
+    private Date pingTime;
 
     public enum connectionType {
         DIRECT, NEIGHBOUR;
@@ -164,15 +165,29 @@ public class SenderCore {
                 }
                 wbMap.get(sorWiFi).newMsg++;
                 refeshDeviceList();
-                //ping
+                //integrade ping program
                 String[] sp = data.split(" ");
                 if (sp[0].compareTo("-ping") == 0) {
                     if (sp.length <= 1) {
                         send(SenderWifiManager.getMacAddr(), sorWiFi, "ping reply from" + SenderWifiManager.getMacAddr());
                     } else {
                         if (sp[1].compareTo("-t") == 0) {
-                            int count = Integer.parseInt(sp[2]) + 1;
-                            send(SenderWifiManager.getMacAddr(), sorWiFi, "-ping -t " + count + " messages");
+                            int count = 0;
+                            try {
+                                count = Integer.parseInt(sp[2]) + 1;
+                            } catch (Exception e) {
+                                send(SenderWifiManager.getMacAddr(), sorWiFi, "usage: -ping -t [startcount] i.e.: -ping -t 0");
+                            }
+                            Date now=new Date();
+                            if(pingTime!=null){
+                                long delay=(now.getTime()-pingTime.getTime())/2;
+                                send(SenderWifiManager.getMacAddr(), sorWiFi, "-ping -t " + count + " messages delay:"+delay+"ms");
+                                pingTime=now;
+                            }else {
+                                send(SenderWifiManager.getMacAddr(), sorWiFi, "-ping -t " + count + " messages");
+                                pingTime=new Date();
+                            }
+
                         } else {
                             send(SenderWifiManager.getMacAddr(), sorWiFi, "ping reply from" + SenderWifiManager.getMacAddr());
                         }
