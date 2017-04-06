@@ -19,7 +19,9 @@ import java.util.Date;
 import app.akexorcist.bluetotohspp.library.BluetoothSPP;
 import app.akexorcist.bluetotohspp.library.BluetoothState;
 
-
+/**
+ *The class the manage the Bluetooth interface
+ */
 public class SenderBluetoothManager {
     private Context context;
     private BluetoothSPP bluetoothSPP;
@@ -55,7 +57,7 @@ public class SenderBluetoothManager {
                     bluetoothSPP.setupService();
                     bluetoothSPP.startService(BluetoothState.DEVICE_ANDROID);
                 }
-            }, 1000);
+            }, 1000);//waiting for Bluetooth enable
             Log.d("bt", "bluetooth has not enabled");
         } else {
             bluetoothSPP.setupService();
@@ -77,6 +79,7 @@ public class SenderBluetoothManager {
                     // bluetoothSPP.disconnect();
                     SenderCore.getsInstance().updateMainUI();
                 }
+                //auto stop the bluetooth connection if the connection does not uesd in an AUTO_DISCONNECT_INTERVAL(default 10s)
                 d_handler.postDelayed(autoStopBTconnection, AUTO_DISCONNECT_INTERVAL);
             }
 
@@ -123,7 +126,7 @@ public class SenderBluetoothManager {
             SenderCore.getsInstance().onSuccess();
         }
     }
-
+    //wrap all the field in a message into a JSONObject
     private JSONObject craftmessage(String sor, String tar, String data) {
         JSONObject jo = new JSONObject();
         try {
@@ -137,13 +140,21 @@ public class SenderBluetoothManager {
         return jo;
     }
 
+    /**
+     * in Android 6.0+ it is also not possible to get Bluetooth address directly, This is the special way of geting it.
+     * reference http://stackoverflow.com/questions/41014764/is-it-possible-to-get-bluetooth-mac-address-in-android-jar-library
+     * @return Bluetooth address
+     */
     public String getbtMAC() {
         return tarBT == null ? android.provider.Settings.Secure.getString(context.getContentResolver(), "bluetooth_address") : tarBT;
     }
 
-
+    /**
+     * This Listener deal with the income raw data from Bluetooth interface.
+     * It will parse the String back to JSONObject for message or JSONArray for routing table from neighbour
+     * After parse, it pass the message or routing information to core
+     */
     private class datareceive implements BluetoothSPP.OnDataReceivedListener {
-
         @Override
         public void onDataReceived(byte[] data, String message) {
 
@@ -156,11 +167,11 @@ public class SenderBluetoothManager {
                     d_handler.removeCallbacks(autoStopBTconnection);
                     d_handler.postDelayed(autoStopBTconnection, AUTO_DISCONNECT_INTERVAL);
                 }
-            } catch (JSONException e) {
+            } catch (JSONException e) {// In the case it is exchanging routing table
                 try {
                     SenderCore.getsInstance().startupdateDeviceInformation();
                     JSONArray ja = new JSONArray(message);
-                    for (int i = 0; i < ja.length(); i++) {
+                    for (int i = 0; i < ja.length(); i++) {//iterate over the routing table and pass it to core
                         String temp = ja.getString(i);
                         String splited[] = temp.split("\\|");
                         if (splited[1].compareTo(connectedMAC)==0) {

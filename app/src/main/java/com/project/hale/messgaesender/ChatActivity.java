@@ -21,6 +21,9 @@ import com.project.hale.messgaesender.Wifi.SenderWifiManager;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Chatting activity that provides GUI of conversation between two nodes
+ */
 public class ChatActivity extends AppCompatActivity {
     EditText input_text;
     ListView msglist;
@@ -71,6 +74,7 @@ public class ChatActivity extends AppCompatActivity {
     private void refreshmsglist() {
         chatmsgList = new ArrayList<>();
         if (mainDB.isOpen()) {
+            //find the conversation with SQL query
             Cursor cursor = mainDB.rawQuery("SELECT * from msg where (tar ='" + Macadd + "' and sor ='" + SenderWifiManager.getMacAddr() + "') or (sor ='" + Macadd + "' and tar ='" + SenderWifiManager.getMacAddr() + "') order by time", null);
             while (cursor.moveToNext()) {
 
@@ -93,6 +97,7 @@ public class ChatActivity extends AppCompatActivity {
             if (event.getAction() == KeyEvent.ACTION_DOWN) {
                 if ((keyCode == KeyEvent.KEYCODE_DPAD_CENTER) || (keyCode == KeyEvent.KEYCODE_ENTER)) {
                     String newMsg = input_text.getText().toString();
+                    //check invalid input
                     if (newMsg.length() > 255) {
                         input_text.setError("Message can not be too long!");
                     } else if (newMsg.length() == 0) {

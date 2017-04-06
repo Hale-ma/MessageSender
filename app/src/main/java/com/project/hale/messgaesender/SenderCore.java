@@ -28,20 +28,23 @@ import java.util.Queue;
 import static com.project.hale.messgaesender.SenderCore.connectionType.DIRECT;
 import static com.project.hale.messgaesender.SenderCore.connectionType.NEIGHBOUR;
 
+/**
+ * This class contains the core login of the programme
+ */
 public class SenderCore {
     private static SenderCore sInstance = new SenderCore();
 
     private SQLiteDatabase mainDB;
     //Hash map store the
     public static String[] paired_device;
-    public HashMap<String, SenderDevice> wbMap = new HashMap<>();
+    public HashMap<String, SenderDevice> wbMap = new HashMap<>();//the routing table that store the device information
     private Handler msg_handler, status_handler;
     private SharedPreferences preferences;
     private SharedPreferences.Editor editor;
     public DeviceListFragment dlf;
     public List<SenderDevice> deviceList = new ArrayList<>();//the list just for GUI display
 
-    private Queue<String[]> cacheMessage = new LinkedList<>();
+    private Queue<String[]> cacheMessage = new LinkedList<>();// the queue that cache the message that is waiting for sending
     private boolean isSending = false;
     private String[] nowSending;
     private Date pingTime;
@@ -86,7 +89,7 @@ public class SenderCore {
     }
 
     /**
-     * In this application, wifi MAC is the unique identifier
+     * The real sending method
      *
      * @param sorWiFi
      * @param tarWiFi
@@ -150,7 +153,14 @@ public class SenderCore {
         }
     }
 
-
+    /**
+     * Called when receive data, it will ues
+     *
+     * @param sorWiFi
+     * @param tarWiFi
+     * @param time
+     * @param data
+     */
     public void onReceive(String sorWiFi, String tarWiFi, String time, String data) {
         Cursor c = mainDB.rawQuery("SELECT * FROM msg WHERE sor='" + sorWiFi + "' and tar='" + tarWiFi + "' and time='" + time + "' and msg ='" + data + "'", null);
         if (c.getCount() != 0) {
@@ -165,7 +175,7 @@ public class SenderCore {
                 }
                 wbMap.get(sorWiFi).newMsg++;
                 refeshDeviceList();
-                //integrade ping program
+                //ping program usage:-ping -t 0
                 String[] sp = data.split(" ");
                 if (sp[0].compareTo("-ping") == 0) {
                     if (sp.length <= 1) {
@@ -202,6 +212,12 @@ public class SenderCore {
         }
     }
 
+    /**
+     * generate a JSONArray of routing table
+     *
+     * @param btuse
+     * @return
+     */
     public JSONArray neighbour_message(boolean btuse) {
         JSONArray ja = new JSONArray();
 
@@ -249,6 +265,7 @@ public class SenderCore {
         }
     }
 
+    //called when finish sending a message, other message in the queue can be sent.
     public void onSuccess() {
         Log.d("SenderCore", "onSuccess():" + connectionType);
         isSending = false;
@@ -290,10 +307,12 @@ public class SenderCore {
         this.msg_handler = msg_handler;
     }
 
+    //open the Sharedperference for editing
     public void startupdateDeviceInformation() {
         editor = preferences.edit();
     }
 
+    //commit the sharedperference
     public void finishDeviceUpdate() {
         editor.commit();
         refeshDeviceList();
@@ -301,6 +320,9 @@ public class SenderCore {
     }
 
     /**
+     * Updating the routing table by exchanging routing table.
+     * This method takes one single (user,distance) pair from other device
+     *
      * @param wifiAddress device wifi mac address
      * @param btAddress   device bt mac address
      * @param distance    the distance between source device  and this device
@@ -335,6 +357,12 @@ public class SenderCore {
 
     }
 
+    /**
+     * update the routing table by received message
+     * @param wifiAddress
+     * @param btAddress
+     * @param from
+     */
     public void updateDeviceInformation_bymessage(String wifiAddress, String btAddress, String from) {
         //update the neibghour node
         SenderDevice sd = new SenderDevice(wifiAddress, wifiAddress, btAddress, 1, getTime());
@@ -368,6 +396,7 @@ public class SenderCore {
 
     }
 
+    //load the routing table
     private void loadPerference() {
         Map<String, ?> usr = preferences.getAll();
         deviceList = new ArrayList<>();

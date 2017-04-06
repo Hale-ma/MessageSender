@@ -30,7 +30,7 @@ import java.util.List;
 
 
 /**
- * Created by mahon on 2016/12/20.
+ *The class the manage the Wi-Fi interface
  */
 
 public class SenderWifiManager implements SalutDataCallback {
@@ -38,7 +38,7 @@ public class SenderWifiManager implements SalutDataCallback {
     public Salut snetwork;
     private SalutDataReceiver sdr;
     public static String MacAddr;
-    private SQLiteDatabase mainDB;
+   // private SQLiteDatabase mainDB;
     private SharedPreferences preferences;
     public boolean isInit = false;
     private boolean isDiscovering = false;
@@ -68,13 +68,13 @@ public class SenderWifiManager implements SalutDataCallback {
     public void init(SalutDataReceiver sdr, Salut s, Context context, SharedPreferences preferences) {
         this.sdr = sdr;
         this.snetwork = s;
-        this.mainDB = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
+       // this.mainDB = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
         this.context = context;
         this.preferences = preferences;
-        SELF_CHECK_INTERVAL = preferences.getInt("checkinterval", 40000);
+        SELF_CHECK_INTERVAL = preferences.getInt("checkinterval", 30000);
         WIFI_ENABLE_INTERVAL = preferences.getInt("enable", 3000);
         WIFI_DISABLE_INTERVAL = preferences.getInt("disable", 1500);
-        mainDB.execSQL("CREATE TABLE IF NOT EXISTS msg(sor char(64),tar char(64),time char(64),msg char(255))");
+      //  mainDB.execSQL("CREATE TABLE IF NOT EXISTS msg(sor char(64),tar char(64),time char(64),msg char(255))");
         snetwork.startNetworkService(new SalutDeviceCallback() {
             @Override
             public void call(SalutDevice salutDevice) {
@@ -86,7 +86,7 @@ public class SenderWifiManager implements SalutDataCallback {
 
     }
 
-
+    //Start discover
     public void discover() {
         Log.d("Salut", "discovering..." + isDiscovering);
         isDiscovering = true;
@@ -96,12 +96,13 @@ public class SenderWifiManager implements SalutDataCallback {
                 praseData();
                 Log.d("Salut", "Update timer.." + isDiscovering);
                 d_handler.removeCallbacks(mServiceDiscoveringRunnable);
+                //If there is no incoming information for SELF_CHECK_INTERVAL (default 30s), it will try to restart Wi-Fi interface
                 d_handler.postDelayed(mServiceDiscoveringRunnable, SELF_CHECK_INTERVAL);
             }
         }, true);
 
     }
-
+    // The backgroud thread that restarting the Wi-Fi interface to make sure the Wi-Fi service discovery can keep searching
     private Runnable mServiceDiscoveringRunnable = new Runnable() {
         @Override
         public void run() {
@@ -142,6 +143,14 @@ public class SenderWifiManager implements SalutDataCallback {
 
     };
 
+    /**
+     * sending/ routing  a message with Wi-Fi.
+     * It will check the Wi-Fi status may update it. Detailed design is mentioned in report
+     *
+     * @param tar
+     * @param msg
+     * @param action
+     */
     public void sendmsg(String tar, String msg, int action) {//action: 0 = message from myself 1 = forwarding message tar:when sending ,only put MAC address, when forwarding, put full tar
         WifiStatus before = nowstatus;
         snetwork.stopNetworkService(false);
@@ -265,7 +274,9 @@ public class SenderWifiManager implements SalutDataCallback {
         Log.d("Salut - on DataReceived", o.toString());
     }
 
-
+    /**
+     * To prase the String message into pieces and pass it to core
+     */
     private void praseData() {
         SenderCore.getsInstance().startupdateDeviceInformation();
         Iterator<String> it = snetwork.rawData.iterator();
@@ -292,7 +303,7 @@ public class SenderWifiManager implements SalutDataCallback {
 
                     }
                 } catch (JSONException e) {
-                    //just receive a empty message
+                    //just receive an empty message
                 }
                 SenderCore.getsInstance().finishDeviceUpdate();
             }
@@ -301,6 +312,12 @@ public class SenderWifiManager implements SalutDataCallback {
         SenderCore.getsInstance().finishDeviceUpdate();
     }
 
+    /**
+     * In android 6.0+, the old way of getting Wi-Fi Mac address does not work.
+     * This is a special way of getting Wi-Fi Mac address
+     * reference to http://stackoverflow.com/questions/33159224/getting-mac-address-in-android-6-0
+     * @return
+     */
     @NonNull
     public static String getMacAddr() {
         if (MacAddr != null) {
@@ -321,13 +338,13 @@ public class SenderWifiManager implements SalutDataCallback {
                 for (byte b : macBytes) {
                     if ((b & 0xFF) < 10) {
                         if (first) {
-                            res1.append("0" + Integer.toHexString((b & 0xFF) + 2) + ":");
+                            res1.append("0" + Integer.toHexString((b & 0xFF) + 2) + ":");// to make sure the format of MAC is correct
                         } else {
                             res1.append("0" + Integer.toHexString(b & 0xFF) + ":");
                         }
                     } else {
                         if (first) {
-                            res1.append(Integer.toHexString((b & 0xFF) + 2) + ":");
+                            res1.append(Integer.toHexString((b & 0xFF) + 2) + ":");//In the test phone, an offset of 2 is necessary to added in order to get the correct MAC addresss
                         } else {
                             res1.append(Integer.toHexString(b & 0xFF) + ":");
                         }
@@ -355,7 +372,7 @@ public class SenderWifiManager implements SalutDataCallback {
     public void endservice() {
         snetwork.stopServiceDiscovery(false);
         snetwork.stopNetworkService(false);
-        mainDB.close();
+        //.close();
     }
 
 

@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
             SalutDataReceiver dataReceiver = new SalutDataReceiver(this, SenderWifiManager.getInstance());
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
             String date = simpleDateFormat.format(new Date());
-            SalutServiceData sd = new SalutServiceData("loc|all|" + date, 52391, "x", SenderBluetoothManager.getInstance().getbtMAC());
+            SalutServiceData sd = new SalutServiceData("loc|all|" + date, 52391, "x", SenderBluetoothManager.getInstance().getbtMAC());// a default broadcast that show the existence of the phone
             SalutCallback sc = new SalutCallback() {
                 @Override
                 public void call() {

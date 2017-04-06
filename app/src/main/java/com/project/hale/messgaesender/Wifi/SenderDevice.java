@@ -1,7 +1,10 @@
 package com.project.hale.messgaesender.Wifi;
 
 
-
+/**
+ * An device object in this application, it stores all the information for a device
+ * It is the basic element that builds the routing table
+ */
 public class SenderDevice {
     public String wifiAddress, btaddress, nearestaddress;
     public int distance = 0;
@@ -39,6 +42,7 @@ public class SenderDevice {
         return wifiAddress;
     }
 
+    //This method is desgined to store this object as a String into Sharedperference
     public String getdetail() {
         //      [0]          [1]                 [2]                  [3]
         return time + "|" + btaddress + "|" + nearestaddress + "|" + distance;

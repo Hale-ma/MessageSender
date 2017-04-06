@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import com.project.hale.messgaesender.Wifi.SenderWifiManager;
 
+//The Activty provoid GUI of settings.
 public class SettingsActivity extends AppCompatActivity {
     EditText checkinterval_edit, enable_edit,disable_edit,bt_edit;
     Button deldb, savesetting,delcache;
@@ -31,10 +32,14 @@ public class SettingsActivity extends AppCompatActivity {
         deldb = (Button) findViewById(R.id.cleandb_button);
         delcache=(Button)findViewById(R.id.clean_cache);
         savesetting = (Button) findViewById(R.id.save_button);
-        checkinterval_edit.setText(String.valueOf(preferences.getInt("checkinterval", 20000)));
+
+        //default settings
+        checkinterval_edit.setText(String.valueOf(preferences.getInt("checkinterval", 30000)));
         enable_edit.setText(String.valueOf(preferences.getInt("enable", 3000)));
         disable_edit.setText(String.valueOf(preferences.getInt("disable", 1500)));
         bt_edit.setText(String.valueOf(preferences.getInt("bt_interval",10000)));
+
+
         deldb.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -60,6 +65,7 @@ public class SettingsActivity extends AppCompatActivity {
                 int eni=Integer.parseInt(enable_edit.getText().toString());
                 int dni =Integer.parseInt(disable_edit.getText().toString());
                 int bti=Integer.parseInt(bt_edit.getText().toString());
+                //check invalid input
                if(cd<eni+dni){
                    checkinterval_edit.setError("This value can not be less than the sum of enable interval and disable interval");
                }else if(eni<500){
