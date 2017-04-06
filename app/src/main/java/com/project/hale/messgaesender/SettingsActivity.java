@@ -33,7 +33,7 @@ public class SettingsActivity extends AppCompatActivity {
         delcache=(Button)findViewById(R.id.clean_cache);
         savesetting = (Button) findViewById(R.id.save_button);
 
-        //default settings
+        //load settings from Sharedpreference, if it does not exist, use default settings instead
         checkinterval_edit.setText(String.valueOf(preferences.getInt("checkinterval", 30000)));
         enable_edit.setText(String.valueOf(preferences.getInt("enable", 3000)));
         disable_edit.setText(String.valueOf(preferences.getInt("disable", 1500)));

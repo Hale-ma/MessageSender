@@ -2,7 +2,6 @@ package com.project.hale.messgaesender.Wifi;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -38,7 +37,6 @@ public class SenderWifiManager implements SalutDataCallback {
     public Salut snetwork;
     private SalutDataReceiver sdr;
     public static String MacAddr;
-   // private SQLiteDatabase mainDB;
     private SharedPreferences preferences;
     public boolean isInit = false;
     private boolean isDiscovering = false;
@@ -68,20 +66,19 @@ public class SenderWifiManager implements SalutDataCallback {
     public void init(SalutDataReceiver sdr, Salut s, Context context, SharedPreferences preferences) {
         this.sdr = sdr;
         this.snetwork = s;
-       // this.mainDB = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().getAbsolutePath().replace("files", "databases") + "sendermsg.db", null);
         this.context = context;
         this.preferences = preferences;
+        //load settings from Shared preferences
         SELF_CHECK_INTERVAL = preferences.getInt("checkinterval", 30000);
         WIFI_ENABLE_INTERVAL = preferences.getInt("enable", 3000);
         WIFI_DISABLE_INTERVAL = preferences.getInt("disable", 1500);
-      //  mainDB.execSQL("CREATE TABLE IF NOT EXISTS msg(sor char(64),tar char(64),time char(64),msg char(255))");
         snetwork.startNetworkService(new SalutDeviceCallback() {
             @Override
             public void call(SalutDevice salutDevice) {
                 Log.d("Salut", salutDevice.readableName + "has connected");
             }
-        });//althou
-        discover();
+        });
+        discover();//start discover
         d_handler.postDelayed(mServiceDiscoveringRunnable, SELF_CHECK_INTERVAL);
 
     }
@@ -372,13 +369,15 @@ public class SenderWifiManager implements SalutDataCallback {
     public void endservice() {
         snetwork.stopServiceDiscovery(false);
         snetwork.stopNetworkService(false);
-        //.close();
     }
 
 
-
-
-    public void boardcastNeighbourhood() {
+    /**
+     * an unused method that broadcast the routing table with Wi-Fi interface.
+     * Beacuse the efficient problem, it is not used in the application.
+     *
+     */
+    public void broadcastNeighbourhood() {
         sendmsg("all", SenderCore.getsInstance().neighbour_message(false).toString());
     }
 }

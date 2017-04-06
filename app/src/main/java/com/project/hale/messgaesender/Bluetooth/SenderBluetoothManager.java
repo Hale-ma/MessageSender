@@ -20,7 +20,7 @@ import app.akexorcist.bluetotohspp.library.BluetoothSPP;
 import app.akexorcist.bluetotohspp.library.BluetoothState;
 
 /**
- *The class the manage the Bluetooth interface
+ * The class the manage the Bluetooth interface
  */
 public class SenderBluetoothManager {
     private Context context;
@@ -32,8 +32,8 @@ public class SenderBluetoothManager {
     private String tarBT;
     private String cacheMAC = "";
     private JSONObject cachedata;
-    private int AUTO_DISCONNECT_INTERVAL=10000;
-    private Handler d_handler=new Handler();
+    private int AUTO_DISCONNECT_INTERVAL = 10000;
+    private Handler d_handler = new Handler();
     private SharedPreferences preferences;
 
     private SenderBluetoothManager() {
@@ -44,7 +44,7 @@ public class SenderBluetoothManager {
         return sInstance;
     }
 
-    public void init(Context c,SharedPreferences pre) {
+    public void init(Context c, SharedPreferences pre) {
         this.context = c;
         tarBT = android.provider.Settings.Secure.getString(context.getContentResolver(), "bluetooth_address");
         preferences = pre;
@@ -126,6 +126,7 @@ public class SenderBluetoothManager {
             SenderCore.getsInstance().onSuccess();
         }
     }
+
     //wrap all the field in a message into a JSONObject
     private JSONObject craftmessage(String sor, String tar, String data) {
         JSONObject jo = new JSONObject();
@@ -143,6 +144,7 @@ public class SenderBluetoothManager {
     /**
      * in Android 6.0+ it is also not possible to get Bluetooth address directly, This is the special way of geting it.
      * reference http://stackoverflow.com/questions/41014764/is-it-possible-to-get-bluetooth-mac-address-in-android-jar-library
+     *
      * @return Bluetooth address
      */
     public String getbtMAC() {
@@ -163,7 +165,7 @@ public class SenderBluetoothManager {
             try {
                 JSONObject jo = new JSONObject(message);
                 SenderCore.getsInstance().onReceive(jo.getString("sor"), jo.getString("tar"), jo.getString("time"), jo.getString("data"));
-                if(jo.getString("tar").compareTo(SenderWifiManager.getMacAddr())==0){
+                if (jo.getString("tar").compareTo(SenderWifiManager.getMacAddr()) == 0) {
                     d_handler.removeCallbacks(autoStopBTconnection);
                     d_handler.postDelayed(autoStopBTconnection, AUTO_DISCONNECT_INTERVAL);
                 }
@@ -174,12 +176,18 @@ public class SenderBluetoothManager {
                     for (int i = 0; i < ja.length(); i++) {//iterate over the routing table and pass it to core
                         String temp = ja.getString(i);
                         String splited[] = temp.split("\\|");
-                        if (splited[1].compareTo(connectedMAC)==0) {
-                            SenderCore.getsInstance().updateDeviceInformation_bymessage(splited[0], splited[1], splited[0]);
-                            Log.d("SenderCore","new device by BT:"+splited[0]+" "+ splited[1]);
-                        }else{
-                        SenderCore.getsInstance().updateDeviceInformation_bySharing(splited[0], splited[1], Integer.parseInt(splited[2]), SenderCore.getsInstance().getWifiMac(connectedMAC));
-                    }}
+                        try {
+
+                            if (splited[1].compareTo(connectedMAC) == 0) {
+                                SenderCore.getsInstance().updateDeviceInformation_bymessage(splited[0], splited[1], splited[0]);
+                                Log.d("SenderCore", "new device by BT:" + splited[0] + " " + splited[1]);
+                            } else {
+                                SenderCore.getsInstance().updateDeviceInformation_bySharing(splited[0], splited[1], Integer.parseInt(splited[2]), SenderCore.getsInstance().getWifiMac(connectedMAC));
+                            }
+                        }catch (Exception eh){
+                            Log.d("SenderCore", "can not update device information");
+                        }
+                    }
                     SenderCore.getsInstance().finishDeviceUpdate();
                 } catch (JSONException e1) {
                     e1.printStackTrace();
@@ -192,11 +200,12 @@ public class SenderBluetoothManager {
         bluetoothSPP.disconnect();
         bluetoothSPP.stopService();
     }
+
     private Runnable autoStopBTconnection = new Runnable() {
         @Override
         public void run() {
             bluetoothSPP.disconnect();
-            connectedMAC=null;
+            connectedMAC = null;
         }
     };
 

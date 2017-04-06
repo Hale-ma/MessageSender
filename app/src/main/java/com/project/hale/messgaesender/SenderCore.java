@@ -35,8 +35,7 @@ public class SenderCore {
     private static SenderCore sInstance = new SenderCore();
 
     private SQLiteDatabase mainDB;
-    //Hash map store the
-    public static String[] paired_device;
+    public static String[] paired_device;//store the Mac address of paired Blutooth device
     public HashMap<String, SenderDevice> wbMap = new HashMap<>();//the routing table that store the device information
     private Handler msg_handler, status_handler;
     private SharedPreferences preferences;
@@ -154,7 +153,8 @@ public class SenderCore {
     }
 
     /**
-     * Called when receive data, it will ues
+     * Called when receive data
+     *
      *
      * @param sorWiFi
      * @param tarWiFi

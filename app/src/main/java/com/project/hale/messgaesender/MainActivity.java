@@ -28,6 +28,10 @@ import com.project.hale.messgaesender.Wifi.SenderWifiManager;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * The main activity of the application , it will be first load when startup.
+ * When loading this activity , it will initiate other part of the application.
+ */
 public class MainActivity extends AppCompatActivity implements DeviceListFragment.OnFragmentInteractionListener, SalutDataCallback {
     Salut snetwork;
     DeviceListFragment dfra;
@@ -116,6 +120,9 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
         Log.d("Salut - on DataReceived", o.toString());
     }
 
+    /**
+     * Destroying this activity means the application is exiting , it will stop other module of the application
+     */
     @Override
     protected void onDestroy() {
         Log.d("Salut", "Ending");

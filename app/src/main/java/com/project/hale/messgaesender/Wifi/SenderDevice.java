@@ -28,6 +28,7 @@ public class SenderDevice {
         this.btaddress = btaddress;
     }
 
+    //construct the object from string, used when load from Sharedperference
     public SenderDevice(String mac, String information) {
         this.wifiAddress = mac;
         String[] temp = information.split("\\|");
