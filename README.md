@@ -1,14 +1,14 @@
 # MessageSender
 UCD Project:Android Message Diffusion Over Link Layer Protocols 
-#Project Specification
+# Project Specification
 
-**Subject**NetWorks
+**Subject**:NetWorks
 
 **Project Type**:Design and Implementation
 
-**Software Requirements**Java, Android Studio
+**Software Requirements**:Java, Android Studio
 
-**Hardware Requirements**PC for developing, Android smartphone for testing/using
+**Hardware Requirements**:PC for developing, Android smartphone for testing/using
 
 Nowadays, mobile phones normally have several wireless interfaces including Bluetooth, Wi-Fi, which are useable in ad-hoc mode. The aim of this project is to build an Android application to send messages directly without using the TCP/IP stack. A simple protocol should be designed above link layer. The user of application can send message with a network identifier. Any node receiving the message will check the device identifier and will forward or drop the message depending on the identifier. To avoid infinite retransmissions, messages are cached for some time so that any node receiving a previously transmitted message (i.e., cached) will drop it.
 
